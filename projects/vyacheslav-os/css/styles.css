@@ -1,0 +1,1908 @@
+:root {
+    --bg: #070c16;
+    --surface: #0f172a;
+    --surface-card: rgba(15, 23, 42, 0.88);
+    --surface-hover: #1e293b;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(56, 189, 248, 0.35);
+    --accent: #38bdf8;
+    --accent-warm: #ffd700;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text: #f8fafc;
+    --text-dim: #94a3b8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ФОНОВЫЙ ХОЛСТ ЖИВЫХ ОБОЕВ */
+#live-bg-canvas {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    display: block !important;
+}
+
+/* СИСТЕМНЫЙ СТАТУС-БАР */
+.os-system-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 12px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+}
+.os-sys-badge { display: flex; align-items: center; gap: 6px; }
+.os-pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--success); box-shadow: 0 0 8px var(--success);
+}
+
+/* НАВИГАЦИОННАЯ ПАНЕЛЬ */
+#main-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 10px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+#main-header::-webkit-scrollbar { display: none; }
+
+.nav-btn {
+    background: rgba(30, 41, 59, 0.6);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 7px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    transition: 0.15s;
+}
+.nav-btn:active { transform: scale(0.96); }
+.nav-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+}
+.nav-btn.egg-tab {
+    background: rgba(255, 215, 0, 0.15);
+    color: var(--accent-warm);
+    border-color: rgba(255, 215, 0, 0.3);
+    display: none;
+}
+
+/* ЭКРАНЫ */
+.screen {
+    display: none;
+    width: 100%;
+    max-width: 440px;
+    padding: 12px;
+    margin: 0 auto;
+    flex-direction: column;
+    flex: 1;
+}
+.screen.active { display: flex; }
+
+/* КАРТОЧКИ И КНОПКИ */
+.glass-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.p-btn {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+.p-btn:active { transform: scale(0.96); }
+
+/* СЕТКА ИГР */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+}
+.game-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.15s;
+}
+.game-card:active {
+    transform: scale(0.96);
+    border-color: var(--accent);
+}
+.game-card-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 2px 5px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+}
+.game-card-badge.pvp { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.game-card-badge.hot { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.game-card-badge.gold { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+.game-card-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+.game-card-title { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+.game-card-desc { font-size: 10px; color: var(--text-dim); }
+
+/* КАЛЬКУЛЯТОР */
+.calc-box {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+}
+.calc-input {
+    width: 100%;
+    height: 54px;
+    background: #030712;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 26px;
+    font-weight: 800;
+    text-align: right;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-family: monospace;
+    outline: none;
+}
+.calc-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+}
+.c-btn {
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-hover);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.c-btn:active { transform: scale(0.95); }
+.c-btn.op { background: rgba(56, 189, 248, 0.15); color: var(--accent); border-color: rgba(56, 189, 248, 0.3); }
+.c-btn.eq { background: var(--accent); color: #000; font-weight: 900; }
+.c-btn.c { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+
+/* ИСПРАВЛЕННЫЙ ИНТЕРФЕЙС АДМИНКИ */
+.admin-input-compact {
+    width: 100%;
+    height: 38px;
+    background: #030712;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    padding: 6px 10px;
+    outline: none;
+}
+.admin-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent-warm);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ЗАМЕТКИ, ПРОФИЛЬ, МАГАЗИН */
+.notes-container { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.notes-search { width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 8px 12px; font-size: 12px; outline: none; }
+.notes-list { display: flex; flex-direction: column; gap: 6px; max-height: 130px; overflow-y: auto; }
+.note-item { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; }
+.note-item.active { border-color: var(--accent); background: #1e293b; }
+.notes-editor { width: 100%; background: var(--surface-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.notes-title-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border); color: #fff; font-size: 14px; font-weight: 700; padding: 4px 0; outline: none; }
+.notes-body-input { width: 100%; height: 120px; background: transparent; border: none; color: #cbd5e1; font-size: 12px; outline: none; resize: none; line-height: 1.4; }
+
+.prof-id-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.prof-avatar-box {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; margin-bottom: 8px; border: 1px solid var(--border);
+}
+.prof-nick-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.prof-nick-txt { font-size: 16px; font-weight: 800; }
+.prof-edit-btn { background: transparent; border: none; font-size: 12px; cursor: pointer; }
+.prof-sub-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.prof-sub-btn {
+    flex: 1; background: var(--surface-card); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 8px; border-radius: 10px; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.prof-sub-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.shop-cat-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 10px; }
+.shop-cat-btn {
+    background: var(--surface-card); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 6px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.shop-cat-btn.active { border-color: var(--accent); color: var(--accent); }
+.streak-container { display: flex; gap: 4px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; }
+
+.settings-select {
+    background: #030712;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+}
+.footer-btn {
+    background: transparent; border: none; color: var(--text-dim);
+    font-size: 11px; padding: 16px; text-align: center; cursor: pointer; width: 100%;
+}
+.case-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(3, 7, 18, 0.95); display: none;
+    flex-direction: column; align-items: center; justify-content: center; padding: 16px;
+}
+
+#toast-container {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 10000; display: flex; flex-direction: column; gap: 6px; width: 90%; max-width: 320px; pointer-events: none;
+}
+.toast-msg {
+    background: var(--surface); color: #fff; border: 1px solid var(--border);
+    padding: 10px 14px; border-radius: 10px; font-size: 12px; text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* ТЕМЫ ОФОРМЛЕНИЯ ПАСХАЛОК */
+body.nezabudka-mode { --bg: #07172c !important; --surface: #0f2942 !important; --border: #38bdf8 !important; --accent: #60a5fa !important; }
+body.agent67-mode { --bg: #1c1208 !important; --surface: #2d1d0d !important; --border: #f59e0b !important; --accent: #f59e0b !important; }
+body.matrix-mode { --bg: #000000 !important; --surface: #051a05 !important; --border: #00ff66 !important; --accent: #00ff66 !important; --text: #00ff66 !important; }
+body.sigma-mode { --bg: #111827 !important; --surface: #1f2937 !important; --border: #64748b !important; --accent: #cbd5e1 !important; }
+body.sigmaboy-rus-mode { --bg: #0c140d !important; --surface: #162417 !important; --border: #34d399 !important; --accent: #10b981 !important; box-shadow: inset 0 0 50px rgba(16, 185, 129, 0.25); }
+
+/* АКТИВАТОР КАСКИ В ТОСТЕ */
+
+
+    to { transform: scale(1.4); filter: drop-shadow(0 0 8px #34d399); }
+}
+
+/* СКРЫТЫЙ ЦВЕТОК В 2048 */
+.stealth-flower {
+    opacity: 0.35;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.stealth-flower:hover, .stealth-flower:active { opacity: 1; transform: scale(1.2); }
+
+/* ТОСТЫ И НЕПРИМЕТНАЯ КАСКА-ПАСХАЛКА */
+#toast-container {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 90%;
+    max-width: 330px;
+    pointer-events: none;
+}
+.toast-msg {
+    background: var(--surface);
+    color: #fff;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    pointer-events: auto !important;
+}
+.soldier-trigger {
+    cursor: pointer;
+    display: inline-block;
+    padding: 2px 6px;
+    margin-left: 4px;
+    pointer-events: auto !important;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* =========================================================
+   СТИЛИ ДИЗАЙНА ИНТЕРФЕЙСА (UI DESIGNS)
+   ========================================================= */
+
+/* 1. СТИЛЬ ТЕТРИС 8-BIT */
+body.ui-tetris {
+    --bg: #0b0d19 !important;
+    --surface: #14192b !important;
+    --surface-card: #1c233c !important;
+    --border: #3b82f6 !important;
+    --accent: #f59e0b !important;
+    --accent-warm: #ef4444 !important;
+    --text: #ffffff !important;
+    --text-dim: #93c5fd !important;
+}
+body.ui-tetris * {
+    border-radius: 0px !important;
+}
+body.ui-tetris .nav-btn,
+body.ui-tetris .game-card,
+body.ui-tetris .glass-card,
+body.ui-tetris .p-btn,
+body.ui-tetris .c-btn {
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 3px 3px 0px #000 !important;
+}
+body.ui-tetris .nav-btn.active {
+    background: #f59e0b !important;
+    color: #000 !important;
+    border-color: #ffd700 !important;
+}
+body.ui-tetris .game-card-title {
+    font-family: monospace !important;
+    text-transform: uppercase !important;
+}
+
+/* 2. СТИЛЬ GAMEBOY CLASSIC */
+body.ui-gameboy {
+    --bg: #8b956d !important;
+    --surface: #9bbc0f !important;
+    --surface-card: #8bac0f !important;
+    --surface-hover: #7b9c0f !important;
+    --border: #306230 !important;
+    --accent: #0f380f !important;
+    --accent-warm: #0f380f !important;
+    --text: #0f380f !important;
+    --text-dim: #306230 !important;
+}
+body.ui-gameboy * {
+    border-radius: 2px !important;
+}
+body.ui-gameboy .nav-btn,
+body.ui-gameboy .game-card,
+body.ui-gameboy .glass-card,
+body.ui-gameboy .p-btn,
+body.ui-gameboy .c-btn {
+    border: 2px solid #0f380f !important;
+    background: #9bbc0f !important;
+    color: #0f380f !important;
+}
+body.ui-gameboy .nav-btn.active {
+    background: #0f380f !important;
+    color: #9bbc0f !important;
+}
+
+/* 3. СТИЛЬ КИБЕРПАНК 2077 */
+body.ui-cyberpunk {
+    --bg: #09090e !important;
+    --surface: #14141e !important;
+    --surface-card: #191a28 !important;
+    --border: #fcee0a !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #fcee0a !important;
+    --text: #fcee0a !important;
+    --text-dim: #00f0ff !important;
+}
+body.ui-cyberpunk .nav-btn.active {
+    background: rgba(252, 238, 10, 0.2) !important;
+    border-color: #fcee0a !important;
+    color: #fcee0a !important;
+    box-shadow: 0 0 14px rgba(252, 238, 10, 0.4) !important;
+}
+
+/* 4. СТИЛЬ СИНТВЕЙВ 80-х */
+body.ui-synthwave {
+    --bg: #120726 !important;
+    --surface: #240f42 !important;
+    --surface-card: #2f1259 !important;
+    --border: #ff007f !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #ff007f !important;
+    --text: #ffffff !important;
+    --text-dim: #d8b4fe !important;
+}
+
+/* 5. ЧЁРНЫЙ OLED */
+body.ui-oled {
+    --bg: #000000 !important;
+    --surface: #0a0a0a !important;
+    --surface-card: #121212 !important;
+    --border: #222222 !important;
+    --accent: #ffffff !important;
+    --accent-warm: #cccccc !important;
+    --text: #ffffff !important;
+    --text-dim: #777777 !important;
+}
+
+/* ИСПРАВЛЕНИЕ СТИЛЕЙ РИСОВАНИЯ */
+
+
+.tool-btn.active {
+    border-color: var(--accent) !important;
+    background: rgba(56, 189, 248, 0.22) !important;
+    color: var(--accent) !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) !important;
+}
+.palette-btn {
+    width: 26px !important;
+    height: 26px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    transition: transform 0.1s, border-color 0.1s;
+}
+.palette-btn:active {
+    transform: scale(0.9);
+    border-color: #fff !important;
+}
+
+/* =========================================================
+   КИБЕРНЕТИЧЕСКИЙ ЭКРАН ЗАГРУЗКИ (BOOT SCREEN)
+   ========================================================= */
+#os-boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: #030712;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.5s;
+    user-select: none;
+}
+#os-boot-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.boot-pulse-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+    animation: ringPulse 1.2s infinite alternate ease-in-out;
+    margin-bottom: 14px;
+}
+@keyframes ringPulse {
+    from { transform: scale(0.85); opacity: 0.4; }
+    to { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 10px var(--accent)); }
+}
+.boot-logo {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+}
+.boot-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    margin-bottom: 20px;
+    font-family: monospace;
+}
+.boot-bar-box {
+    width: 220px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+#boot-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #10b981);
+    box-shadow: 0 0 10px var(--accent);
+    transition: width 0.15s ease-out;
+}
+#boot-status-txt {
+    font-size: 10px;
+    color: var(--accent);
+    font-family: monospace;
+    margin-top: 10px;
+}
+
+
+
+/* =========================================================
+   СЕКРЕТНЫЙ РЕЖИМ 5/5: МЕМНЫЙ ХАОС (CHAOS TROLL UI)
+   ========================================================= */
+@keyframes rainbowChaos {
+    0% { border-color: #ff0055; box-shadow: 0 0 10px #ff0055, inset 0 0 5px rgba(255,0,85,0.2); }
+    33% { border-color: #00ffcc; box-shadow: 0 0 12px #00ffcc, inset 0 0 5px rgba(0,255,204,0.2); }
+    66% { border-color: #ffe600; box-shadow: 0 0 12px #ffe600, inset 0 0 5px rgba(255,230,0,0.2); }
+    100% { border-color: #ff0055; box-shadow: 0 0 10px #ff0055, inset 0 0 5px rgba(255,0,85,0.2); }
+}
+
+@keyframes textRGB {
+    0% { color: #ff007f; }
+    50% { color: #00f0ff; }
+    100% { color: #ffe600; }
+}
+
+body.ui-secret-chaos {
+    --bg: #070014 !important;
+    --surface: #140326 !important;
+    --surface-card: rgba(26, 4, 48, 0.9) !important;
+    --border: #ff007f !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #ffe600 !important;
+    --text: #ffffff !important;
+    --text-dim: #c084fc !important;
+}
+
+body.ui-secret-chaos .glass-card,
+body.ui-secret-chaos .game-card,
+body.ui-secret-chaos .calc-box,
+body.ui-secret-chaos .prof-id-card {
+    border: 2px solid #ff0055 !important;
+    animation: rainbowChaos 4s infinite linear !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+body.ui-secret-chaos .nav-btn.active {
+    background: linear-gradient(90deg, rgba(255,0,128,0.3), rgba(0,240,255,0.3)) !important;
+    border: 2px solid #00f0ff !important;
+    box-shadow: 0 0 14px #00f0ff !important;
+}
+
+body.ui-secret-chaos .game-card-title {
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+}
+
+body.ui-secret-chaos .game-card-badge {
+    transform: rotate(-3deg) !important;
+    border: 1px solid #ffe600 !important;
+}
+
+/* АВТОМАТИЧЕСКИ РАСШИРЯЕМАЯ СЕТКА PIXEL PAINT */
+
+
+
+/* АДАПТИВНЫЙ PIXEL PAINT ХОЛСТ */
+
+
+#paint-main-canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 58vh !important;
+    display: block !important;
+    border-radius: 8px !important;
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    background: #070d18 !important;
+    touch-action: none !important;
+    cursor: crosshair !important;
+}
+
+/* АДАПТИВНЫЙ PIXEL PAINT ХОЛСТ */
+.paint-board {
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+    background: #030712 !important;
+    padding: 6px !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    touch-action: none !important;
+    user-select: none !important;
+}
+
+#paint-main-canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 58vh !important;
+    display: block !important;
+    border-radius: 8px !important;
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    background: #070d18 !important;
+    touch-action: none !important;
+    cursor: crosshair !important;
+}
+
+/* =========================================================
+   СТИЛИ КАЛЕНДАРЯ
+   ========================================================= */
+.cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+}
+.cal-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+.cal-day-cell {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    position: relative;
+    transition: 0.15s;
+}
+.cal-day-cell:active { transform: scale(0.92); }
+.cal-day-cell.empty {
+    background: transparent;
+    border-color: transparent;
+    cursor: default;
+}
+.cal-day-cell.today {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.35);
+}
+.cal-day-cell.selected {
+    background: var(--accent);
+    color: #000 !important;
+    border-color: var(--accent);
+}
+.cal-day-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-warm);
+    position: absolute;
+    bottom: 3px;
+}
+
+/* =========================================================
+   НОВЫЙ СТИЛЬ: РЕЖИМ "BETA 2.0" (НИЖНИЙ ДОК И ШИРОКИЕ КАРТОЧКИ)
+   ========================================================= */
+body.ui-beta {
+    --bg: #050711 !important;
+    --surface: #0a0e20 !important;
+    --surface-card: rgba(14, 20, 42, 0.9) !important;
+    --border: rgba(0, 240, 255, 0.18) !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #ff007f !important;
+}
+
+/* Нижний парящий док вместо верхнего хедера */
+body.ui-beta #main-header {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 20px) !important;
+    max-width: 430px !important;
+    background: rgba(10, 14, 32, 0.94) !important;
+    backdrop-filter: blur(18px) !important;
+    border: 1px solid rgba(0, 240, 255, 0.35) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 240, 255, 0.2) !important;
+    padding: 6px 8px !important;
+    z-index: 9999 !important;
+}
+
+body.ui-beta .screen {
+    padding-bottom: 85px !important; /* Чтобы контент не перекрывался нижним доком */
+}
+
+/* Переделка сетки игр в широкие горизонтальные баннеры */
+body.ui-beta .games-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+body.ui-beta .game-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 12px 14px !important;
+    background: linear-gradient(90deg, rgba(14, 20, 42, 0.95), rgba(8, 12, 26, 0.85)) !important;
+    border: 1px solid rgba(0, 240, 255, 0.2) !important;
+    border-left: 4px solid var(--accent) !important;
+    border-radius: 14px !important;
+    gap: 12px !important;
+}
+body.ui-beta .game-card-icon-wrap {
+    margin-bottom: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    flex-shrink: 0 !important;
+}
+body.ui-beta .game-card-badge {
+    position: static !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+}
+
+/* =========================================================
+   ИДЕАЛЬНЫЙ РЕЖИМ BETA 2.0 (NEXT-GEN CYBER OS)
+   ========================================================= */
+
+/* Кнопки переключения режима интерфейса */
+.ui-mode-toggle-btn.active {
+    background: var(--accent) !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 12px var(--accent) !important;
+}
+
+body.ui-beta {
+    --bg: #040711 !important;
+    --surface: #0a0f24 !important;
+    --surface-card: rgba(13, 19, 44, 0.82) !important;
+    --border: rgba(56, 189, 248, 0.22) !important;
+    --border-glow: rgba(0, 240, 255, 0.45) !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #ff007f !important;
+}
+
+/* 1. ПАРИРУЮЩИЙ НИЖНИЙ ДОК */
+body.ui-beta #main-header {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100% - 20px) !important;
+    max-width: 440px !important;
+    background: rgba(10, 15, 36, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(0, 240, 255, 0.35) !important;
+    border-radius: 26px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 0 20px rgba(0, 240, 255, 0.2) !important;
+    padding: 7px 10px !important;
+    z-index: 9999 !important;
+}
+body.ui-beta #main-header .nav-btn {
+    border-radius: 16px !important;
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+body.ui-beta #main-header .nav-btn.active {
+    background: rgba(0, 240, 255, 0.2) !important;
+    color: #00f0ff !important;
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.4) !important;
+}
+
+/* Отступ контента снизу под док */
+body.ui-beta .screen {
+    padding-bottom: 95px !important;
+}
+
+/* 2. КАТАЛОГ ИГР: ГОРИЗОНТАЛЬНЫЕ КИБЕР-БАННЕРЫ С КНОПКОЙ "СТАРТ" */
+body.ui-beta .games-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+body.ui-beta .game-card {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 12px 14px !important;
+    background: linear-gradient(135deg, rgba(14, 22, 52, 0.95), rgba(8, 12, 28, 0.9)) !important;
+    border: 1px solid rgba(0, 240, 255, 0.22) !important;
+    border-left: 4px solid var(--accent) !important;
+    border-radius: 16px !important;
+    position: relative !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.15s, border-color 0.15s !important;
+}
+body.ui-beta .game-card:active {
+    transform: scale(0.98) !important;
+    border-color: var(--accent) !important;
+}
+body.ui-beta .game-card-icon-wrap {
+    margin-bottom: 0 !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    background: rgba(0, 240, 255, 0.08) !important;
+    border: 1px solid rgba(0, 240, 255, 0.25) !important;
+    margin-right: 12px !important;
+    flex-shrink: 0 !important;
+}
+body.ui-beta .game-card-title {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+}
+body.ui-beta .game-card-desc {
+    font-size: 11px !important;
+    color: var(--text-dim) !important;
+}
+body.ui-beta .game-card-badge {
+    position: static !important;
+    margin-left: auto !important;
+    padding: 4px 8px !important;
+    font-size: 9px !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+/* 3. КАЛЬКУЛЯТОР В РЕЖИМЕ BETA: НЕОНОВАЯ КИБЕР-КАПСУЛА */
+body.ui-beta .calc-box {
+    background: rgba(10, 16, 38, 0.95) !important;
+    border: 1px solid rgba(0, 240, 255, 0.4) !important;
+    border-radius: 24px !important;
+    padding: 18px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 240, 255, 0.15) !important;
+}
+body.ui-beta .calc-input {
+    background: #02050e !important;
+    border: 1px solid rgba(0, 240, 255, 0.3) !important;
+    border-radius: 14px !important;
+    color: #00f0ff !important;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+    height: 60px !important;
+    font-size: 28px !important;
+}
+body.ui-beta .c-btn {
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f8fafc !important;
+    font-weight: 800 !important;
+    transition: 0.15s !important;
+}
+body.ui-beta .c-btn:active {
+    transform: scale(0.92) !important;
+}
+body.ui-beta .c-btn.op {
+    background: rgba(0, 240, 255, 0.15) !important;
+    border-color: rgba(0, 240, 255, 0.4) !important;
+    color: #00f0ff !important;
+}
+body.ui-beta .c-btn.eq {
+    background: linear-gradient(135deg, #00f0ff, #ff007f) !important;
+    border: none !important;
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4) !important;
+}
+body.ui-beta .c-btn.c {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #ef4444 !important;
+}
+
+/* 4. ПАСХАЛКИ В РЕЖИМЕ BETA: ХРАНИЛИЩЕ CYBER VAULT */
+body.ui-beta #tab-eggs .glass-card {
+    background: linear-gradient(135deg, rgba(14, 20, 48, 0.95), rgba(7, 10, 24, 0.9)) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 16px !important;
+    padding: 14px !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+body.ui-beta #tab-eggs .glass-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 4px !important;
+    height: 100% !important;
+    background: var(--accent-warm) !important;
+    box-shadow: 0 0 10px var(--accent-warm) !important;
+}
+body.ui-beta #tab-eggs .p-btn {
+    border-radius: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* 5. КАРТОЧКИ СТРИКА, КВЕСТОВ И МАГАЗИНА */
+body.ui-beta .prof-id-card {
+    background: linear-gradient(135deg, rgba(14, 22, 50, 0.95), rgba(6, 9, 22, 0.9)) !important;
+    border: 1px solid rgba(0, 240, 255, 0.3) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+}
+body.ui-beta .os-system-bar {
+    background: rgba(6, 9, 22, 0.88) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* =========================================================
+   НОВАЯ ТЕМА: АМЕТИСТОВЫЙ ЗАКАТ (AMETHYST LUXE)
+   ========================================================= */
+body.amethyst-mode {
+    --bg: #0a0618 !important;
+    --surface: #150d2e !important;
+    --surface-card: rgba(26, 16, 54, 0.88) !important;
+    --surface-hover: #26164d !important;
+    --border: rgba(192, 132, 252, 0.28) !important;
+    --border-glow: rgba(168, 85, 247, 0.55) !important;
+    --accent: #c084fc !important;
+    --accent-warm: #f472b6 !important;
+    --text: #f5f3ff !important;
+    --text-dim: #a78bfa !important;
+}
+
+/* =========================================================
+   1. ДИЗАЙН: LIQUID GLASS (ЖИДКОЕ СТЕКЛО)
+   ========================================================= */
+body.ui-glass {
+    --border: rgba(255, 255, 255, 0.18) !important;
+    --border-glow: rgba(255, 255, 255, 0.35) !important;
+}
+body.ui-glass .glass-card,
+body.ui-glass .game-card,
+body.ui-glass .calc-box,
+body.ui-glass .prof-id-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+body.ui-glass .nav-btn,
+body.ui-glass .p-btn {
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+}
+body.ui-glass .nav-btn.active {
+    background: rgba(255, 255, 255, 0.22) !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.25) !important;
+}
+
+/* =========================================================
+   2. ДИЗАЙН: SCI-FI HUD (ТАКТИЧЕСКИЙ КИБЕР-ТЕРМИНАЛ)
+   ========================================================= */
+body.ui-scifi {
+    --border: rgba(0, 240, 255, 0.4) !important;
+    --border-glow: rgba(0, 240, 255, 0.7) !important;
+}
+body.ui-scifi .glass-card,
+body.ui-scifi .game-card,
+body.ui-scifi .calc-box,
+body.ui-scifi .prof-id-card {
+    border-radius: 0px !important;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)) !important;
+    border: 1px solid var(--accent) !important;
+    background: rgba(5, 12, 28, 0.94) !important;
+    box-shadow: inset 0 0 18px rgba(0, 240, 255, 0.12), 0 4px 20px rgba(0, 0, 0, 0.8) !important;
+}
+body.ui-scifi .nav-btn,
+body.ui-scifi .p-btn,
+body.ui-scifi .c-btn {
+    border-radius: 0px !important;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.6px !important;
+    border: 1px solid var(--border) !important;
+}
+body.ui-scifi .nav-btn.active {
+    background: rgba(0, 240, 255, 0.22) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 12px var(--accent) !important;
+}
+body.ui-scifi .game-card-title {
+    font-family: monospace !important;
+    letter-spacing: 1px !important;
+}
+
+/* =========================================================
+   3. ДИЗАЙН: NEUMORPH 3D (МЯГКИЙ НЕО-ОБЪЁМ)
+   ========================================================= */
+body.ui-neumorph {
+    --surface-card: #0b1220 !important;
+}
+body.ui-neumorph .glass-card,
+body.ui-neumorph .game-card,
+body.ui-neumorph .calc-box,
+body.ui-neumorph .prof-id-card {
+    border: none !important;
+    border-radius: 22px !important;
+    background: #0d1627 !important;
+    box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.65), -5px -5px 14px rgba(255, 255, 255, 0.04) !important;
+}
+body.ui-neumorph .nav-btn,
+body.ui-neumorph .p-btn,
+body.ui-neumorph .c-btn {
+    border: none !important;
+    border-radius: 14px !important;
+    background: #0d1627 !important;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.55), -3px -3px 8px rgba(255, 255, 255, 0.03) !important;
+    transition: box-shadow 0.12s ease, transform 0.1s !important;
+}
+body.ui-neumorph .nav-btn:active,
+body.ui-neumorph .p-btn:active,
+body.ui-neumorph .c-btn:active,
+body.ui-neumorph .nav-btn.active {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.7), inset -3px -3px 7px rgba(255, 255, 255, 0.04) !important;
+    color: var(--accent) !important;
+}
+
+/* =========================================================
+   СТАРЫЕ КЛАССИЧЕСКИЕ ТЕМЫ ОФОРМЛЕНИЯ
+   ========================================================= */
+body.gold-mode {
+    --bg: #0d0a02 !important;
+    --surface: #1c1505 !important;
+    --surface-card: rgba(36, 28, 8, 0.9) !important;
+    --border: rgba(255, 215, 0, 0.35) !important;
+    --border-glow: rgba(255, 215, 0, 0.6) !important;
+    --accent: #ffd700 !important;
+    --accent-warm: #f59e0b !important;
+    --text: #fffbeb !important;
+    --text-dim: #d97706 !important;
+}
+
+body.black-mode {
+    --bg: #000000 !important;
+    --surface: #0a0a0a !important;
+    --surface-card: #121212 !important;
+    --border: #262626 !important;
+    --border-glow: #404040 !important;
+    --accent: #ffffff !important;
+    --accent-warm: #a3a3a3 !important;
+    --text: #ffffff !important;
+    --text-dim: #737373 !important;
+}
+
+body.emerald-mode {
+    --bg: #02120b !important;
+    --surface: #062316 !important;
+    --surface-card: rgba(8, 42, 27, 0.9) !important;
+    --border: rgba(16, 185, 129, 0.35) !important;
+    --border-glow: rgba(52, 211, 153, 0.6) !important;
+    --accent: #10b981 !important;
+    --accent-warm: #34d399 !important;
+    --text: #ecfdf5 !important;
+    --text-dim: #059669 !important;
+}
+
+body.purple-mode {
+    --bg: #0c0418 !important;
+    --surface: #18092e !important;
+    --surface-card: rgba(32, 12, 60, 0.9) !important;
+    --border: rgba(168, 85, 247, 0.35) !important;
+    --border-glow: rgba(192, 132, 252, 0.6) !important;
+    --accent: #a855f7 !important;
+    --accent-warm: #c084fc !important;
+    --text: #faf5ff !important;
+    --text-dim: #9333ea !important;
+}
+
+body.cyberpunk-mode {
+    --bg: #09090e !important;
+    --surface: #14141e !important;
+    --surface-card: rgba(24, 25, 38, 0.92) !important;
+    --border: rgba(252, 238, 10, 0.38) !important;
+    --border-glow: rgba(0, 240, 255, 0.65) !important;
+    --accent: #00f0ff !important;
+    --accent-warm: #fcee0a !important;
+    --text: #ffffff !important;
+    --text-dim: #fcee0a !important;
+}
+
+body.toxic-mode {
+    --bg: #081002 !important;
+    --surface: #112005 !important;
+    --surface-card: rgba(22, 40, 8, 0.9) !important;
+    --border: rgba(132, 204, 22, 0.35) !important;
+    --border-glow: rgba(163, 230, 53, 0.6) !important;
+    --accent: #84cc16 !important;
+    --accent-warm: #eab308 !important;
+    --text: #f7fee7 !important;
+    --text-dim: #65a30d !important;
+}
+
+body.sakura-mode {
+    --bg: #14050d !important;
+    --surface: #260a1a !important;
+    --surface-card: rgba(48, 15, 34, 0.9) !important;
+    --border: rgba(244, 114, 182, 0.35) !important;
+    --border-glow: rgba(251, 113, 133, 0.6) !important;
+    --accent: #f472b6 !important;
+    --accent-warm: #fb7185 !important;
+    --text: #fff1f2 !important;
+    --text-dim: #db2777 !important;
+}
+
+/* =========================================================
+   ФИРМЕННЫЕ ДИЗАЙНЫ ИНТЕРФЕЙСА (100% НЕЗАВИСИМЫ ОТ ЦВЕТА)
+   ========================================================= */
+
+/* 1. ТЕТРИС 8-BIT */
+body.ui-tetris .glass-card,
+body.ui-tetris .game-card,
+body.ui-tetris .calc-box,
+body.ui-tetris .prof-id-card {
+    border-radius: 0px !important;
+    border: 3px solid var(--accent) !important;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.85) !important;
+}
+body.ui-tetris .nav-btn,
+body.ui-tetris .p-btn,
+body.ui-tetris .c-btn {
+    border-radius: 0px !important;
+    border: 2px solid var(--border) !important;
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.85) !important;
+}
+
+/* 2. GAMEBOY CLASSIC */
+body.ui-gameboy .glass-card,
+body.ui-gameboy .game-card,
+body.ui-gameboy .calc-box,
+body.ui-gameboy .prof-id-card {
+    border-radius: 20px 4px 20px 4px !important;
+    border: 2px solid var(--border) !important;
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2), 0 6px 16px rgba(0, 0, 0, 0.6) !important;
+}
+body.ui-gameboy .nav-btn,
+body.ui-gameboy .p-btn {
+    border-radius: 18px 4px 18px 4px !important;
+}
+
+/* 3. КИБЕРПАНК 2077 */
+body.ui-cyberpunk .glass-card,
+body.ui-cyberpunk .game-card,
+body.ui-cyberpunk .calc-box,
+body.ui-cyberpunk .prof-id-card {
+    border-radius: 0px !important;
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px) !important;
+    border: 2px solid var(--accent) !important;
+    box-shadow: 0 0 14px var(--accent) !important;
+}
+body.ui-cyberpunk .nav-btn,
+body.ui-cyberpunk .p-btn {
+    border-radius: 0px !important;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px) !important;
+}
+
+/* 4. СИНТВЕЙВ 80-Х */
+body.ui-synthwave .glass-card,
+body.ui-synthwave .game-card,
+body.ui-synthwave .calc-box,
+body.ui-synthwave .prof-id-card {
+    border-radius: 18px !important;
+    border: 1.5px solid var(--accent) !important;
+    box-shadow: 0 0 18px var(--accent), 0 8px 24px rgba(0,0,0,0.7) !important;
+}
+
+/* 5. ЧЁРНЫЙ OLED MINIMAL */
+body.ui-oled .glass-card,
+body.ui-oled .game-card,
+body.ui-oled .calc-box,
+body.ui-oled .prof-id-card {
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+}
+body.ui-oled .nav-btn,
+body.ui-oled .p-btn {
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: none !important;
+}
+
+/* =========================================================
+   ИНТЕРАКТИВНАЯ АДМИН-КОНСОЛЬ (CYBER CLI)
+   ========================================================= */
+.cli-container {
+    background: #02040a !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.85) !important;
+    font-family: monospace !important;
+}
+
+.cli-output {
+    height: 180px !important;
+    overflow-y: auto !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+    color: #cbd5e1 !important;
+    background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.05), transparent 70%) !important;
+}
+
+.cli-line { margin-bottom: 3px; word-break: break-all; }
+.cli-err { color: #f87171 !important; }
+.cli-ok { color: #34d399 !important; font-weight: 700; }
+
+.cli-input-row {
+    display: flex;
+    align-items: center;
+    background: #070d1a;
+    border-top: 1px solid var(--border);
+    padding: 4px 8px;
+    position: relative;
+}
+
+.cli-prompt-symbol {
+    color: var(--accent);
+    font-weight: 900;
+    font-size: 14px;
+    margin-right: 6px;
+}
+
+.cli-input-field {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #fff !important;
+    font-family: monospace !important;
+    font-size: 12px !important;
+    height: 28px !important;
+}
+
+.cli-suggestions-box {
+    display: none;
+    flex-direction: column;
+    background: #0a1124;
+    border-top: 1px solid var(--border);
+    max-height: 110px;
+    overflow-y: auto;
+}
+
+.cli-sugg-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 10px;
+    font-size: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.cli-sugg-item:hover, .cli-sugg-item:active {
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--accent);
+}
+.cli-sugg-item span { color: var(--text-dim); }
+
+.cli-cheatsheet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    max-height: 140px;
+    overflow-y: auto;
+    margin-top: 6px;
+}
+
+.cli-cheat-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: 0.12s;
+}
+.cli-cheat-item:active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--accent);
+}
+.cli-cheat-item code { color: var(--accent); font-weight: 700; font-size: 10px; }
+.cli-cheat-item small { color: var(--text-dim); font-size: 8px; margin-top: 1px; }
+
+/* =========================================================
+   АДМИН-АБЬЮЗ: ЭФФЕКТЫ ХАОСА И СЕРВЕРНЫЕ ИВЕНТЫ
+   ========================================================= */
+@keyframes screenGlitchShake {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    20% { transform: translate(-6px, 4px) rotate(-1deg); }
+    40% { transform: translate(6px, -4px) rotate(1deg); }
+    60% { transform: translate(-5px, -3px) rotate(-0.5deg); }
+    80% { transform: translate(5px, 5px) rotate(0.5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+body.abuse-shaking {
+    animation: screenGlitchShake 0.12s infinite ease-in-out !important;
+}
+
+@keyframes abuseDiscoStrobe {
+    0% { filter: hue-rotate(0deg) saturate(2); }
+    50% { filter: hue-rotate(180deg) saturate(3) invert(0.15); }
+    100% { filter: hue-rotate(360deg) saturate(2); }
+}
+
+body.abuse-disco {
+    animation: abuseDiscoStrobe 0.25s infinite linear !important;
+}
+
+@keyframes abuseAlarmPulse {
+    0% { box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.3); }
+    50% { box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.85); background: rgba(239, 68, 68, 0.1); }
+    100% { box-shadow: inset 0 0 40px rgba(239, 68, 68, 0.3); }
+}
+
+body.abuse-lockdown {
+    animation: abuseAlarmPulse 0.7s infinite alternate ease-in-out !important;
+}
+
+/* Падающие монеты */
+.abuse-falling-coin {
+    position: fixed;
+    top: -50px;
+    z-index: 10005;
+    font-size: 28px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s;
+    pointer-events: auto;
+    filter: drop-shadow(0 0 8px #ffd700);
+}
+.abuse-falling-coin:active {
+    transform: scale(1.4);
+}
+
+/* Полноэкранный баннер глобального оповещения */
+#abuse-broadcast-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10010;
+    background: linear-gradient(90deg, #b91c1c, #dc2626, #b91c1c);
+    color: #fff;
+    padding: 14px 16px;
+    box-shadow: 0 4px 30px rgba(220, 38, 38, 0.8);
+    border-bottom: 2px solid #fef08a;
+    text-align: center;
+    font-family: monospace;
+    animation: screenGlitchShake 0.4s infinite;
+}
+
+/* Оверлей заморозки */
+#abuse-freeze-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10008;
+    background: rgba(14, 165, 233, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 4px solid #38bdf8;
+    box-shadow: inset 0 0 80px #0284c7;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    pointer-events: auto;
+}
+
+/* Фейковый экран критического сбоя (BSOD) */
+#abuse-bsod-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    background: #00429b;
+    color: #ffffff;
+    font-family: monospace;
+    padding: 24px;
+    flex-direction: column;
+    justify-content: center;
+    user-select: none;
+}
+
+/* =========================================================
+   АДМИН-АБЬЮЗ 2.0: РЕЙД-БОСС, АИРДРОП И ЛИХОРАДКА
+   ========================================================= */
+
+/* 1. Мировой Рейд-Босс */
+#abuse-boss-widget {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10015;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.25), rgba(15, 23, 42, 0.95));
+    border: 2px solid #ef4444;
+    border-radius: 24px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(239, 68, 68, 0.6), inset 0 0 20px rgba(239, 68, 68, 0.3);
+    width: 90%;
+    max-width: 340px;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.boss-avatar-box {
+    font-size: 72px;
+    cursor: pointer;
+    transition: transform 0.08s;
+    filter: drop-shadow(0 0 15px #ef4444);
+}
+.boss-avatar-box:active {
+    transform: scale(0.88);
+}
+
+.abuse-floating-dmg {
+    position: fixed;
+    color: #ffd700;
+    font-weight: 900;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 10020;
+    text-shadow: 0 0 8px #000;
+    animation: dmgFloat 0.6s ease-out forwards;
+}
+
+@keyframes dmgFloat {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(1.3); }
+}
+
+/* 2. AirDrop Контейнеры */
+.abuse-airdrop-crate {
+    position: fixed;
+    top: -80px;
+    z-index: 10012;
+    cursor: pointer;
+    font-size: 38px;
+    user-select: none;
+    filter: drop-shadow(0 0 12px #38bdf8);
+    transition: transform 0.1s;
+    touch-action: manipulation;
+}
+.abuse-airdrop-crate:active {
+    transform: scale(1.3);
+}
+
+/* 3. Лихорадка Multiplier Banner */
+#abuse-fever-banner {
+    display: none;
+    position: fixed;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: linear-gradient(90deg, #ff007f, #ffd700, #ff007f);
+    background-size: 200% 200%;
+    animation: feverGlow 1.5s infinite linear;
+    color: #000;
+    font-weight: 900;
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.7);
+}
+
+@keyframes feverGlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 4. Переворот экрана на 180 */
+body.abuse-flipped {
+    transform: rotate(180deg) !important;
+    transition: transform 0.5s ease-in-out !important;
+}
+
+/* =========================================================
+   СПЕЦ-АНИМАЦИИ В РЕАЛЬНОМ ВРЕМЕНИ (LOOP EFFECTS)
+   ========================================================= */
+
+/* 1. CRT Ретро-Монитор */
+body.anim-crt::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.32) 50%), 
+                linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.02), rgba(0,0,255,0.03));
+    background-size: 100% 3px, 6px 100%;
+    z-index: 99996;
+    pointer-events: none;
+    animation: crtScanlineFlicker 0.16s infinite;
+}
+
+@keyframes crtScanlineFlicker {
+    0% { opacity: 0.94; }
+    50% { opacity: 1; }
+    100% { opacity: 0.96; }
+}
+
+/* 2. Невесомость (Zero-G Floating) */
+@keyframes zeroGFloatOdd {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-7px) rotate(0.6deg); }
+}
+@keyframes zeroGFloatEven {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(7px) rotate(-0.6deg); }
+}
+
+body.anim-zerog .glass-card:nth-child(odd),
+body.anim-zerog .game-card:nth-child(odd) {
+    animation: zeroGFloatOdd 3.4s ease-in-out infinite !important;
+}
+body.anim-zerog .glass-card:nth-child(even),
+body.anim-zerog .game-card:nth-child(even),
+body.anim-zerog .calc-box {
+    animation: zeroGFloatEven 4.1s ease-in-out infinite !important;
+}
+
+/* 3. Кибер-Спектр Неона (Rainbow Border Wave) */
+@keyframes rainbowBorderLoop {
+    0%   { border-color: #ff0055 !important; box-shadow: 0 0 16px rgba(255,0,85,0.45) !important; }
+    25%  { border-color: #00f0ff !important; box-shadow: 0 0 16px rgba(0,240,255,0.45) !important; }
+    50%  { border-color: #10b981 !important; box-shadow: 0 0 16px rgba(16,185,129,0.45) !important; }
+    75%  { border-color: #ffd700 !important; box-shadow: 0 0 16px rgba(255,215,0,0.45) !important; }
+    100% { border-color: #ff0055 !important; box-shadow: 0 0 16px rgba(255,0,85,0.45) !important; }
+}
+
+body.anim-rainbow-border .glass-card,
+body.anim-rainbow-border .game-card,
+body.anim-rainbow-border .calc-box,
+body.anim-rainbow-border .prof-id-card {
+    animation: rainbowBorderLoop 3s infinite linear !important;
+}
+
+/* Плавающий бейдж активной анимации */
+#fx-active-hud-pill {
+    display: none;
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    z-index: 10002;
+    background: rgba(10, 15, 30, 0.94);
+    border: 1.5px solid var(--accent);
+    box-shadow: 0 0 18px var(--accent);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    backdrop-filter: blur(8px);
+}
+
+/* =========================================================
+   АДМИН-АБЬЮЗ ЭКСТРИМ & СИСТЕМА ПРОФИЛЕЙ
+   ========================================================= */
+
+/* 1. Вращение 360 градусов */
+@keyframes abuseFullSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(0.85); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+body.abuse-spinning {
+    animation: abuseFullSpin 2.5s infinite linear !important;
+}
+
+/* 2. Блэкаут / Фонарик */
+#abuse-blind-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10030;
+    background: #000;
+    pointer-events: none;
+    mask-image: radial-gradient(circle 80px at var(--fx-x, 50%) var(--fx-y, 50%), transparent 0%, black 100%);
+    -webkit-mask-image: radial-gradient(circle 80px at var(--fx-x, 50%) var(--fx-y, 50%), transparent 0%, black 100%);
+}
+
+/* 3. Кибер-Скример */
+#abuse-jumpscare-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    background: #000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+.jumpscare-face {
+    font-size: 110px;
+    animation: screenGlitchShake 0.08s infinite;
+    filter: drop-shadow(0 0 35px #ff0055);
+}
+
+/* 4. Окна Вирусной Атаки */
+.abuse-virus-window {
+    position: fixed;
+    z-index: 10025;
+    background: #0f172a;
+    border: 2px solid #ef4444;
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.5);
+    border-radius: 10px;
+    padding: 10px;
+    width: 220px;
+    color: #fff;
+    font-family: monospace;
+    animation: screenGlitchShake 0.3s infinite ease-in-out;
+}
+
+/* 5. Фейковый Бан */
+#abuse-fakeban-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10035;
+    background: radial-gradient(circle, #450a0a, #030712);
+    color: #fff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    user-select: none;
+}
+
+/* Бейджи ролей профилей */
+.role-badge-owner {
+    background: linear-gradient(90deg, #ffd700, #f59e0b);
+    color: #000;
+    font-weight: 900;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+.role-badge-user {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-dim);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+/* =========================================================
+   ОКНО АВТОРИЗАЦИИ (CYBER AUTH MODAL)
+   ========================================================= */
+#os-auth-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    background: rgba(3, 7, 18, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    touch-action: manipulation;
+}
+
+.auth-card {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 330px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(56, 189, 248, 0.2);
+    text-align: center;
+}
+
+.auth-tabs-row {
+    display: flex;
+    gap: 6px;
+    margin: 12px 0 16px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px;
+    border-radius: 12px;
+}
+
+.auth-tab-btn {
+    flex: 1;
+    padding: 6px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.auth-tab-btn.active {
+    background: var(--accent);
+    color: #000;
+}
+
+.auth-input {
+    width: 100%;
+    height: 40px;
+    background: #070d1a !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 0 12px !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    margin-bottom: 10px;
+    outline: none;
+    box-sizing: border-box;
+}
+.auth-input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* =========================================================
+   НОВЫЕ ОРУДИЯ АДМИН-АБЬЮЗА: ВСПЫШКА, ТАРАКАНЫ, ВОДОВОРОТ
+   ========================================================= */
+
+/* 1. Светошумовая вспышка (Flashbang Nuke) */
+#abuse-flashbang-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10060;
+    background: #ffffff;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 3.5s ease-out;
+}
+
+/* 2. Нашествие тараканов */
+.abuse-cockroach {
+    position: fixed;
+    z-index: 10045;
+    font-size: 26px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    transition: transform 0.05s linear;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+}
+.abuse-cockroach:active {
+    transform: scale(0.6) !important;
+}
+
+/* 3. Гравитационный водоворот (Black Hole) */
+@keyframes blackHoleVortex {
+    0% { transform: rotate(0deg) scale(1); filter: blur(0px); }
+    50% { transform: rotate(540deg) scale(0.35); filter: blur(3px) invert(0.4); }
+    100% { transform: rotate(1080deg) scale(1); filter: blur(0px); }
+}
+body.abuse-vortex {
+    animation: blackHoleVortex 4.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 4. Скользкие убегающие кнопки */
+body.abuse-slippy .nav-btn,
+body.abuse-slippy .p-btn {
+    transition: transform 0.15s ease-out !important;
+}
+
+/* 5. Налоговая проверка */
+#abuse-tax-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+.safe-click-box {
+    font-size: 80px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.08s;
+}
+.safe-click-box:active {
+    transform: scale(0.9);
+}

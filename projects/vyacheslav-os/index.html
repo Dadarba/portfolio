@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <!-- СИСТЕМА ОТЛАДКИ (ERUDA DEVTOOLS + HUD ОШИБОК) -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        try {
+            if (window.eruda) {
+                eruda.init();
+            }
+        } catch (e) {
+            console.warn("Eruda CDN недоступен:", e);
+        }
+
+        // Перехват любых JS ошибок прямо на экран
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error("[GLOBAL ERROR]", msg, url, lineNo, error);
+            var b = document.getElementById('os-debug-error-hud');
+                b = document.createElement('div');
+                b.id = 'os-debug-error-hud';
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999999;background:#991b1b;color:#fff;padding:8px 12px;font-family:monospace;font-size:11px;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.8);border-bottom:2px solid #ef4444;';
+                document.body.prepend(b);
+            }
+            var file = (url || '').split('/').pop() || 'inline';
+            b.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+                '<div><b style="color:#fecaca;">🚨 ОШИБКА JS:</b> ' + msg + '<br>' +
+                '<span style="color:#ffd700;">Файл: ' + file + ' | Строка: ' + lineNo + ':' + (columnNo || 0) + '</span></div>' +
+                '<button onclick="this.parentElement.parentElement.remove()" style="background:#000;color:#fff;border:1px solid #ef4444;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">✕</button>' +
+                '</div>';
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            console.error("[PROMISE REJECTION]", event.reason);
+            var b = document.getElementById('os-debug-error-hud');
+                b = document.createElement('div');
+                b.id = 'os-debug-error-hud';
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999999;background:#991b1b;color:#fff;padding:8px 12px;font-family:monospace;font-size:11px;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,0.8);border-bottom:2px solid #ef4444;';
+                document.body.prepend(b);
+            }
+            var msg = (event.reason && event.reason.message) ? event.reason.message : String(event.reason);
+            b.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+                '<div><b style="color:#fecaca;">⚠️ АСИНХРОННЫЙ СБОЙ:</b> ' + msg + '</div>' +
+                '<button onclick="this.parentElement.parentElement.remove()" style="background:#000;color:#fff;border:1px solid #ef4444;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">✕</button>' +
+                '</div>';
+        };
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Вячеслав OS</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#070c16">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body onclick="ensureAudioReady()">
+
+    <!-- ЗАГРУЗКА -->
+    <div id="os-boot-screen" onclick="this.classList.add('fade-out')">
+        <div class="boot-pulse-ring"></div>
+        <div class="boot-logo">ВЯЧЕСЛАВ OS</div>
+        <div class="boot-sub">Квантовое ядро 2026 // PRO</div>
+    </div>
+    <script>
+        setTimeout(() => {
+            const bs = document.getElementById('os-boot-screen');
+            if (bs) bs.classList.add('fade-out');
+        }, 700);
+    </script>
+
+    <canvas id="live-bg-canvas"></canvas>
+    <canvas id="special-fx-canvas" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:99995; display:none;"></canvas>
+    <div id="toast-container"></div>
+
+    <div id="fx-active-hud-pill" onclick="stopAllSpecialAnimations()">
+        <span id="fx-active-hud-txt">🌀 Эффект активен [Стоп ⏹]</span>
+    </div>
+
+    <!-- СТАТУС-БАР -->
+    <div class="os-system-bar">
+        <div class="os-sys-badge">
+            <div class="os-pulse-dot"></div>
+            <span>Вячеслав OS</span>
+        </div>
+        <div class="os-sys-badge" style="gap:8px;">
+            <span id="os-live-battery">100% 🔋</span>
+            <span id="os-live-clock" style="cursor:pointer;" onclick="handleClockEggClick()">12:00</span>
+            <div id="os-auth-user-badge" style="display:flex; align-items:center; gap:6px; margin-left:6px;"></div>
+        </div>
+    </div>
+
+    <!-- НАВИГАЦИЯ -->
+    <header id="main-header">
+        <button class="nav-btn active" id="btn-hub" onclick="showTab('hub', this)"><span>🎮</span> Игры</button>
+        <button class="nav-btn" id="btn-cases" onclick="showTab('cases', this)"><span>📦</span> Квесты</button>
+        <button class="nav-btn" id="btn-shop" onclick="showTab('shop', this)"><span>🛍️</span> Магазин</button>
+        <button class="nav-btn" id="btn-paint" onclick="showTab('paint', this)"><span>🎨</span> Paint</button>
+        <button class="nav-btn" id="btn-market" onclick="showTab('market', this)"><span>📈</span> Биржа</button>
+        <button class="nav-btn" id="btn-profile" onclick="showTab('profile', this)"><span>🏆</span> Профиль</button>
+        <button class="nav-btn" id="btn-notes" onclick="showTab('notes', this)"><span>📝</span> Заметки</button>
+        <button class="nav-btn" id="btn-calendar" onclick="showTab('calendar', this)"><span>📅</span> Календарь</button>
+        <button class="nav-btn" id="btn-calc" onclick="showTab('calc', this)"><span>🧮</span> Кальк</button>
+        <button class="nav-btn" id="btn-settings" onclick="showTab('settings', this)"><span>⚙️</span> Опции</button>
+        <button class="nav-btn" id="btn-admin" style="display:none;" onclick="showTab('admin', this)"><span>⚡</span> Админ</button>
+        <button class="nav-btn egg-tab" id="btn-eggs" onclick="showTab('eggs', this)"><span>🥚</span> Пасхалки</button>
+    </header>
+
+    <!-- 1. ИГРЫ (11 ИГР) -->
+    <div id="tab-hub" class="screen active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:8px;">
+                <div style="font-size:16px; font-weight:800;">Каталог игр (11)</div>
+                <button class="p-btn" style="border:1px solid #ffd700; color:#ffd700; font-size:11px; padding:4px 10px; font-weight:900; background:rgba(255,215,0,0.12);" onclick="showTab('eggs')">🥚 Пасхалки (5)</button>
+            </div>
+                <div style="font-size:11px; color:var(--text-dim);">Баланс: <b id="hub-coins-val" style="color:var(--accent-warm);">0</b> 🪙</div>
+            </div>
+        </div>
+        <div class="games-grid">
+            <div class="game-card" onclick="openGame('survivors')"><span class="game-card-badge hot">3.0 🔥</span><div class="game-card-icon-wrap" style="color:var(--accent);">⚡</div><div><div class="game-card-title">Cyber Survivors</div><div class="game-card-desc">Рогалик & Рывок</div></div></div>
+            <div class="game-card" onclick="openGame('snake')"><span class="game-card-badge">ХАРДКОР</span><div class="game-card-icon-wrap" style="color:#22c55e;">🐍</div><div><div class="game-card-title">Змейка 60FPS</div><div class="game-card-desc">Стены & Скорость</div></div></div>
+            <div class="game-card" onclick="openGame('jump')"><span class="game-card-badge gold">PRO 2.0</span><div class="game-card-icon-wrap" style="color:#ffd700;">🚀</div><div><div class="game-card-title">Cyber Jump PRO</div><div class="game-card-desc">Платформы</div></div></div>
+            <div class="game-card" onclick="openGame('blockblast')"><span class="game-card-badge hot">ULTRA</span><div class="game-card-icon-wrap" style="color:#34d399;">🧩</div><div><div class="game-card-title">Block Blast</div><div class="game-card-desc">Комбо взрывы</div></div></div>
+            <div class="game-card" onclick="openGame('party4p')"><span class="game-card-badge pvp">2-4P</span><div class="game-card-icon-wrap" style="color:#22c55e;">🎮</div><div><div class="game-card-title">Cyber Gliders 4P</div><div class="game-card-desc">Арена ботов</div></div></div>
+            <div class="game-card" onclick="openGame('sumo4p')"><span class="game-card-badge pvp">4P БОТ</span><div class="game-card-icon-wrap" style="color:#ef4444;">🛡️</div><div><div class="game-card-title">Сумо-Бот 4P</div><div class="game-card-desc">Ринг бамперов</div></div></div>
+            <div class="game-card" onclick="openGame('racer')"><span class="game-card-badge hot">ГОНКИ</span><div class="game-card-icon-wrap" style="color:#38bdf8;">🏎️</div><div><div class="game-card-title">Кибер-Гонки</div><div class="game-card-desc">Трасса & Нитро</div></div></div>
+            <div class="game-card" onclick="openGame('game2048')"><span class="game-card-badge gold">4x4</span><div class="game-card-icon-wrap" style="color:#6366f1;">🔢</div><div><div class="game-card-title">2048 Compact</div><div class="game-card-desc">Числа</div></div></div>
+            <div class="game-card" onclick="openGame('minesweeper')"><span class="game-card-badge">ЛОГИКА</span><div class="game-card-icon-wrap" style="color:#ea580c;">💣</div><div><div class="game-card-title">Сапёр</div><div class="game-card-desc">Минное поле</div></div></div>
+            <div class="game-card" onclick="openGame('lights')"><span class="game-card-badge">ХАКИНГ</span><div class="game-card-icon-wrap" style="color:#f59e0b;">💡</div><div><div class="game-card-title">Взлом 5x5</div><div class="game-card-desc">Lights Out</div></div></div>
+            <div class="game-card" onclick="openGame('clicker')"><span class="game-card-badge">АЛМАЗЫ</span><div class="game-card-icon-wrap" style="color:#38bdf8;">💎</div><div><div class="game-card-title">Кликер</div><div class="game-card-desc">Коврик тапов</div></div></div>
+        </div>
+    </div>
+
+    <!-- 2. КЕЙСЫ -->
+    <div id="tab-cases" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <b style="font-size:16px; color:#ffd700;">Кейсы & Квесты</b>
+            <span style="font-size:13px; font-weight:800; color:var(--accent-warm);">🪙 <span id="cases-coins-val">0</span></span>
+        </div>
+        <div class="glass-card" style="border-color:rgba(245,158,11,0.35);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b style="font-size:12px; color:var(--accent-warm);">🔥 7-Дневный Стрик</b>
+                <button class="p-btn" style="padding:4px 12px; font-size:11px; background:var(--accent-warm); color:#000; font-weight:800;" onclick="claimStreakDay()">Забрать награду</button>
+            </div>
+            <div class="streak-container" id="streak-days-wrap"></div>
+        </div>
+        <div class="glass-card">
+            <span style="font-size:13px; font-weight:700; color:var(--accent);">🎯 Ежедневные Задания</span>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;" id="quests-list-wrap"></div>
+        </div>
+        <div class="glass-card">
+            <span style="font-size:13px; font-weight:700; color:#ffd700;">📦 Рулетка Кейсов</span>
+            <div class="case-card-grid" id="cases-catalog-grid"></div>
+        </div>
+    </div>
+
+    <!-- 3. МАГАЗИН -->
+    <div id="tab-shop" class="screen">
+        <b style="font-size:16px;">Магазин OS</b>
+        <div class="shop-grid" id="shop-dynamic-grid" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- 4. PAINT (ПОЛНЫЙ БЛОК ИНСТРУМЕНТОВ) -->
+    <div id="tab-paint" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <b style="font-size:16px;">Pixel Paint Studio</b>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input type="file" id="paint-photo-input" accept="image/*" style="display:none;">
+                <label for="paint-photo-input" class="p-btn" style="padding:4px 8px; font-size:11px; cursor:pointer;">📷 Фото 1 к 1</label>
+                <button class="p-btn" style="padding:4px 8px; font-size:11px;" onclick="exportPixelArt()">💾 PNG</button>
+                <button class="p-btn" style="padding:4px 8px; font-size:11px; color:var(--danger);" onclick="clearPixelPaint()">Стереть</button>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px; justify-content:center; align-items:center;">
+            <input type="color" id="paint-color" value="#38bdf8" style="width:34px; height:28px; border:none; background:transparent; cursor:pointer;" onchange="selectPalette(this.value)">
+            <button class="p-btn tool-btn active" id="tool-brush" style="padding:4px 8px; font-size:11px;" onclick="setPaintTool('brush')">🖌️ Кисть</button>
+            <button class="p-btn tool-btn" id="tool-eraser" style="padding:4px 8px; font-size:11px;" onclick="setPaintTool('eraser')">🧹 Ластик</button>
+            <button class="p-btn tool-btn" id="tool-bucket" style="padding:4px 8px; font-size:11px;" onclick="setPaintTool('bucket')">🪣 Заливка</button>
+            <button class="p-btn tool-btn" id="tool-picker" style="padding:4px 8px; font-size:11px;" onclick="setPaintTool('picker')">💧 Пипетка</button>
+            <button class="p-btn" style="padding:4px 8px; font-size:11px;" onclick="toggleGridSize()"><span id="paint-res-txt">64x64</span></button>
+        </div>
+
+        <div style="display:flex; gap:6px; justify-content:center; margin-bottom:8px;">
+            <div class="palette-btn" style="background:#38bdf8; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#38bdf8')"></div>
+            <div class="palette-btn" style="background:#10b981; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#10b981')"></div>
+            <div class="palette-btn" style="background:#ef4444; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#ef4444')"></div>
+            <div class="palette-btn" style="background:#ffd700; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#ffd700')"></div>
+            <div class="palette-btn" style="background:#c084fc; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#c084fc')"></div>
+            <div class="palette-btn" style="background:#ffffff; width:22px; height:22px; border-radius:50%; cursor:pointer;" onclick="selectPalette('#ffffff')"></div>
+            <div class="palette-btn" style="background:#000000; width:22px; height:22px; border-radius:50%; cursor:pointer; border:1px solid #444;" onclick="selectPalette('#000000')"></div>
+        </div>
+
+        <div class="paint-board" id="paint-canvas-grid"></div>
+    </div>
+
+    <!-- 5. БИРЖА -->
+    <div id="tab-market" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <b style="font-size:16px;">📈 Фондовая & Крипто Биржа</b>
+            <button class="p-btn" style="background:var(--accent); color:#000; font-weight:800; font-size:11px; padding:4px 10px;" onclick="toggleMarketProMode(true)">🖥️ Терминал PRO</button>
+        </div>
+
+        <div style="display:flex; gap:4px; margin-bottom:6px; overflow-x:auto; padding-bottom:2px;">
+            <button class="p-btn m-sector-btn active" id="msec-all" style="flex:1; padding:4px 6px; font-size:10px;" onclick="filterMarketSector('all')">Все</button>
+            <button class="p-btn m-sector-btn" id="msec-banks" style="flex:1; padding:4px 6px; font-size:10px; color:#10b981;" onclick="filterMarketSector('banks')">🏦 Банки</button>
+            <button class="p-btn m-sector-btn" id="msec-energy" style="flex:1; padding:4px 6px; font-size:10px; color:#f59e0b;" onclick="filterMarketSector('energy')">⛽ Бензин</button>
+            <button class="p-btn m-sector-btn" id="msec-tech" style="flex:1; padding:4px 6px; font-size:10px; color:#38bdf8;" onclick="filterMarketSector('tech')">💻 IT</button>
+            <button class="p-btn m-sector-btn" id="msec-bio" style="flex:1; padding:4px 6px; font-size:10px; color:#ec4899;" onclick="filterMarketSector('bio')">💊 Био</button>
+        </div>
+
+        <div id="market-assets-tabs" style="display:flex; gap:4px; margin-bottom:8px; overflow-x:auto; padding-bottom:2px;"></div>
+
+        <div class="glass-card" style="padding:10px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <b id="market-asset-name" style="font-size:14px;">СберКибер Банк ($BANK)</b>
+                    <div id="market-asset-desc" style="font-size:10px; color:var(--text-dim); margin-top:1px;">Банковский сектор</div>
+                    <div style="font-size:10px; color:var(--text-dim); margin-top:3px;">В портфеле: <b id="market-owned-amount" style="color:#fff;">0 шт.</b></div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="market-cur-price" style="font-size:20px; font-weight:900; color:var(--accent);">420 🪙</div>
+                    <div style="font-size:10px; color:var(--text-dim);">Портфель: <b id="market-total-val" style="color:var(--accent-warm);">0 🪙</b></div>
+                </div>
+            </div>
+            <canvas id="market-canvas-chart" width="330" height="135" style="width:100%; height:auto; margin-top:8px; border-radius:8px; display:block;"></canvas>
+        </div>
+
+        <div class="glass-card" style="padding:10px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <button class="p-btn" style="background:var(--accent); color:#000; font-weight:800; padding:8px 4px; font-size:11px;" onclick="buyCrypto(1)">Купить 1 акцию</button>
+                    <button class="p-btn" style="background:rgba(56,189,248,0.22); font-weight:800; padding:8px 4px; font-size:11px;" onclick="buyCrypto(10)">Купить 10 акций</button>
+                    <button class="p-btn" style="background:rgba(56,189,248,0.32); font-weight:800; padding:8px 4px; font-size:11px;" onclick="buyCrypto('max')">Купить на ВСЁ (MAX)</button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <button class="p-btn" style="background:rgba(239,68,68,0.2); color:#ef4444; font-weight:800; padding:8px 4px; font-size:11px;" onclick="sellCrypto(1)">Продать 1 акцию</button>
+                    <button class="p-btn" style="background:rgba(239,68,68,0.2); color:#ef4444; font-weight:800; padding:8px 4px; font-size:11px;" onclick="sellCrypto(10)">Продать 10 акций</button>
+                    <button class="p-btn" style="background:#ef4444; color:#fff; font-weight:800; padding:8px 4px; font-size:11px;" onclick="sellCrypto('all')">Продать ВСЁ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. ПРОФИЛЬ (С МУЛЬТИ-АККАУНТАМИ) -->
+    <div id="tab-profile" class="screen">
+                <!-- КНОПКА АВТОРИЗАЦИИ В ПРОФИЛЕ -->
+        <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding:10px 14px;">
+            <div>
+                <b style="font-size:12px; color:#fff;">Учётная запись OS</b>
+                <div style="font-size:10px; color:var(--text-dim);">Вход владельца или смена игрока</div>
+            </div>
+            <button class="p-btn" style="background:var(--accent); color:#000; font-weight:900; font-size:11px; padding:6px 12px;" onclick="openAuthModal('login')">🔑 Войти / Регистрация</button>
+        </div>
+        <div class="prof-id-card">
+            <div class="prof-avatar-box" style="cursor:pointer;" onclick="handleAvatarEggClick()"><span id="avatar-icon-txt">👑</span></div>
+            <div class="prof-nick-row">
+                <span class="prof-nick-txt" id="prof-name-val">Вячеслав</span>
+                <span id="prof-role-badge" class="role-badge-owner">👑 ROOT</span>
+            </div>
+            <div style="width:100%; margin-top:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700;">
+                    <span id="prof-lvl-badge" style="color:var(--accent-warm);">Уровень 1</span>
+                </div>
+                <div class="xp-track" style="width:100%; height:7px; background:#070d18; border-radius:4px; overflow:hidden; margin-top:4px;">
+                    <div class="xp-fill" id="prof-xp-bar" style="height:100%; background:linear-gradient(90deg, var(--accent), #10b981); width:0%;"></div>
+                </div>
+                <div style="font-size:10px; color:var(--text-dim); margin-top:3px;">XP: <b id="prof-xp-val" style="color:#fff;">0</b></div>
+            </div>
+        </div>
+
+                <!-- КАРТОЧКА 2FA ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ -->
+        <div class="glass-card" style="margin-top:8px; border-color:#10b981; background:rgba(16,185,129,0.03);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <b style="font-size:12px; color:#10b981;">🔐 Защита 2FA (Google Authenticator)</b>
+                    <div style="font-size:10px; color:var(--text-dim); margin-top:2px;">Статус: <b id="prof-2fa-status-tag" style="color:#f59e0b;">ВЫКЛЮЧЕНА</b></div>
+                </div>
+                <div>
+                    <button class="p-btn" id="prof-2fa-setup-btn" style="background:#10b981; color:#000; font-weight:800; font-size:11px; padding:4px 10px;" onclick="setup2FA()">Включить</button>
+                    <button class="p-btn" id="prof-2fa-disable-btn" style="display:none; color:var(--danger); border-color:var(--danger); font-size:10px; padding:4px 8px;" onclick="disable2FA()">Отключить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="prof-sub-tabs">
+            <button class="prof-sub-btn active" id="psub-btn-stats" onclick="switchProfSubTab('stats')">📊 Рекорды</button>
+            <button class="prof-sub-btn" id="psub-btn-implants" onclick="switchProfSubTab('implants')">🧬 Импланты</button>
+            <button class="prof-sub-btn" id="psub-btn-profiles" onclick="switchProfSubTab('profiles')">👥 Профили</button>
+        </div>
+
+        <div id="prof-pane-stats" class="glass-card" style="padding:10px;">
+            <div class="records-grid" id="prof-records-container"></div>
+        </div>
+
+        <div id="prof-pane-implants" class="glass-card" style="display:none; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <b style="font-size:12px; color:var(--accent);">🧬 Кибер-Синхронизация Тела</b>
+                <b id="cyber-sync-pct" style="font-size:13px; color:var(--accent-warm);">0%</b>
+            </div>
+            <div style="width:100%; height:6px; background:#070d18; border-radius:3px; overflow:hidden; margin-bottom:4px;">
+                <div id="cyber-sync-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #38bdf8, #a855f7); transition:width 0.3s;"></div>
+            </div>
+            <div id="cyber-sync-rank" style="font-size:10px; color:var(--text-dim); margin-bottom:10px;">Органический Человек</div>
+            <div id="prof-implants-grid"></div>
+        </div>
+
+        <!-- МЕНЕДЖЕР ПРОФИЛЕЙ -->
+        <div id="prof-pane-profiles" class="glass-card" style="display:none; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <b style="font-size:12px; color:var(--accent);">👥 Переключение Аккаунтов</b>
+                <button class="p-btn" style="padding:3px 8px; font-size:10px; background:var(--accent); color:#000; font-weight:bold;" onclick="createNewUserProfile()">+ Создать профиль</button>
+            </div>
+            <div id="profiles-list-wrap"></div>
+        </div>
+    </div>
+
+    <!-- 7. ЗАМЕТКИ -->
+    <div id="tab-notes" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <b style="font-size:16px;">Мои заметки</b>
+            <button class="p-btn" style="padding:5px 12px; font-size:11px; background:var(--accent); color:#000; font-weight:bold;" onclick="createNewNote()">+ Новая</button>
+        </div>
+        <div class="notes-container">
+            <input type="text" id="note-search" class="notes-search" placeholder="Поиск заметок..." oninput="filterNotes()">
+            <div class="notes-list" id="notes-list" style="display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto; margin:6px 0;"></div>
+            <div class="notes-editor">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <input type="text" id="note-title" class="notes-title-input" placeholder="Заголовок..." oninput="updateActiveNote()">
+                    <span id="note-pin" style="cursor:pointer; font-size:18px; color:#ffd700;" onclick="togglePinNote()">☆</span>
+                </div>
+                <textarea id="note-body" class="notes-body-input" placeholder="Текст заметки..." oninput="updateActiveNote()"></textarea>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); align-items:center; margin-top:6px;">
+                    <span id="note-meta">Символов: 0</span>
+                    <div style="display:flex; gap:6px;">
+                        <button class="p-btn" style="padding:4px 9px; font-size:11px;" onclick="copyNoteText()">Копия</button>
+                        <button class="p-btn" style="padding:4px 9px; font-size:11px; color:var(--danger);" onclick="deleteActiveNote()">Удалить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. КАЛЕНДАРЬ -->
+    <div id="tab-calendar" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <b style="font-size:16px;">Календарь событий</b>
+            <button class="p-btn" style="padding:4px 10px; font-size:11px;" onclick="calGoToday()">Сегодня</button>
+        </div>
+        <div class="glass-card" style="padding:10px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <button class="p-btn" style="padding:4px 10px; font-size:12px;" onclick="calPrevMonth()">◄</button>
+                <b id="cal-month-title" style="font-size:14px; color:var(--accent);">Месяц 2026</b>
+                <button class="p-btn" style="padding:4px 10px; font-size:12px;" onclick="calNextMonth()">►</button>
+            </div>
+            <div class="cal-weekdays" style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-size:10px; color:var(--text-dim); margin-bottom:6px;">
+                <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+            </div>
+            <div class="cal-days-grid" id="cal-days-container"></div>
+        </div>
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <b id="cal-selected-title" style="font-size:12px; color:var(--accent-warm);">События дня</b>
+                <span id="cal-events-count" style="font-size:10px; color:var(--text-dim);">0 записей</span>
+            </div>
+            <div id="cal-events-list" style="display:flex; flex-direction:column; gap:4px; max-height:110px; overflow-y:auto; margin-bottom:8px;"></div>
+            <div style="display:flex; gap:6px;">
+                <select id="cal-event-cat" class="settings-select" style="min-width:65px; padding:4px; font-size:11px;">
+                    <option value="🎮">🎮 Игра</option>
+                    <option value="⚡">⚡ Важное</option>
+                    <option value="📝">📝 Заметка</option>
+                    <option value="🎉">🎉 Праздник</option>
+                </select>
+                <input type="text" id="cal-event-inp" class="admin-input-compact" style="flex:1; height:32px; font-size:11px;" placeholder="Новое дело...">
+                <button class="p-btn" style="background:var(--accent); color:#000; font-weight:800; padding:4px 10px; font-size:11px;" onclick="addCalEvent()">+ Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. КАЛЬКУЛЯТОР -->
+    <div id="tab-calc" class="screen">
+        <div class="calc-box">
+            <input type="text" id="calc-display" class="calc-input" value="0" readonly>
+            <div class="calc-grid">
+                <button class="c-btn c" onclick="cClear()">C</button>
+                <button class="c-btn c" onclick="cDel()">⌫</button>
+                <button class="c-btn op" onclick="cIn('/')">÷</button>
+                <button class="c-btn op" onclick="cIn('*')">×</button>
+                <button class="c-btn" onclick="cIn('7')">7</button><button class="c-btn" onclick="cIn('8')">8</button><button class="c-btn" onclick="cIn('9')">9</button>
+                <button class="c-btn op" onclick="cIn('-')">−</button>
+                <button class="c-btn" onclick="cIn('4')">4</button><button class="c-btn" onclick="cIn('5')">5</button><button class="c-btn" onclick="cIn('6')">6</button>
+                <button class="c-btn op" onclick="cIn('+')">+</button>
+                <button class="c-btn" onclick="cIn('1')">1</button><button class="c-btn" onclick="cIn('2')">2</button><button class="c-btn" onclick="cIn('3')">3</button>
+                <button class="c-btn eq" onclick="cEval()">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. ОПЦИИ -->
+    <div id="tab-settings" class="screen">
+        <b style="font-size:16px;">Настройки</b>
+        <div class="glass-card" style="margin-top:8px;">
+            <div class="admin-section-title">🖥️ Дизайн интерфейса</div>
+            <select id="set-ui-style-select" class="settings-select" style="width:100%; height:40px; font-weight:700;" onchange="setUiDesign(this.value)">
+                <option value="default">🌌 Неон OS (Классический)</option>
+                <option value="beta">🧪 BETA 2.0 (Нижний док & Кибер-баннеры)</option>
+                <option value="glass">💎 Liquid Glass (Жидкое стекло & Акрил)</option>
+                <option value="scifi">🛸 Sci-Fi HUD (Тактический визор 45°)</option>
+                <option value="neumorph">🪐 Neumorph 3D (Мягкий нео-объём)</option>
+                <option value="tetris">🧱 Тетрис 8-Bit (Ретро-блоки)</option>
+                <option value="gameboy">📟 GameBoy Classic (Аркадный стиль)</option>
+                <option value="cyberpunk">⚡ Киберпанк 2077 (Угловой неон)</option>
+                <option value="synthwave">🌆 Синтвейв 80-х (Гламурный неон)</option>
+                <option value="oled">🖤 Чёрный OLED Minimal (Без рамок)</option>
+            </select>
+            <div id="ui-design-desc" style="margin-top:6px; font-size:10px; color:var(--accent);">● Неон OS</div>
+        </div>
+
+        <div class="glass-card">
+            <div class="admin-section-title">🎨 Цветовая тема</div>
+            <select id="set-theme-select" class="settings-select" style="width:100%;" onchange="setGlobalTheme(this.value)">
+                <option value="default">🌌 Тёмно-синий Неон (Стандарт)</option>
+                <option value="gold">👑 Золото Империи</option>
+                <option value="black">🖤 Чёрный OLED Minimal</option>
+                <option value="emerald">❇️ Изумрудный Неон</option>
+                <option value="purple">🔮 Фиолетовая Ночь</option>
+                <option value="cyberpunk">⚡ Киберпанк 2077</option>
+                <option value="toxic">☢️ Токсичный Лайм</option>
+                <option value="sakura">🌸 Сакура Неон</option>
+            </select>
+        </div>
+
+        <div class="glass-card">
+            <div class="admin-section-title">🌌 Живые обои</div>
+            <select id="set-wallpaper-select" class="settings-select" style="width:100%;" onchange="setLiveWallpaper(this.value)">
+                <option value="synthwave">🌆 Кибер-Сетка Синтвейв</option>
+                <option value="matrix">💻 Матричный Дождь</option>
+                <option value="off">🔋 Выключить</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 11. ПАНЕЛЬ АДМИНА (ТОЛЬКО ДЛЯ ROOT) -->
+    <div id="tab-admin" class="screen">
+        <div id="admin-auth" class="glass-card" style="display:none;" style="text-align:center;">
+            <b style="font-size:14px; color:var(--accent);">🔒 Панель Администратора</b>
+            <div style="font-size:11px; color:var(--text-dim); margin:6px 0 10px;">Введите мастер-пароль Владельца</div>
+            <input type="password" id="admin-pin" class="admin-input-compact" style="text-align:center; font-size:16px; margin-bottom:10px;" placeholder="•••••••">
+            <button class="p-btn" style="width:100%; background:var(--accent); color:#000; font-weight:800;" onclick="checkAdminPin()">Авторизоваться</button>
+        </div>
+
+        <div id="admin-dashboard" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px;">
+                <b style="color:var(--success); font-size:13px;">● Квантовая Панель Бога (ROOT)</b>
+                <button class="p-btn" style="padding:4px 8px; font-size:10px;" onclick="exitAdmin()">Выйти</button>
+            </div>
+
+                        <!-- НАСТРОЙКА 2FA (AUTHENTICATOR) -->
+            <div class="glass-card" style="border-color:#10b981; background:rgba(16,185,129,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div class="admin-section-title" style="color:#10b981; margin-bottom:2px;">🔐 Защита 2FA (Google Authenticator)</div>
+                        <div style="font-size:10px; color:var(--text-dim);">Статус: <b id="admin-2fa-status-tag" style="color:#f59e0b;">ВЫКЛЮЧЕНА</b></div>
+                    </div>
+                    <div>
+                        <button class="p-btn" id="admin-2fa-setup-btn" style="background:#10b981; color:#000; font-weight:800; font-size:11px;" onclick="setup2FA()">Настроить 2FA</button>
+                        <button class="p-btn" id="admin-2fa-disable-btn" style="display:none; color:var(--danger); border-color:var(--danger); font-size:10px;" onclick="disable2FA()">Отключить 2FA</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ТУМБЛЕР ERUDA И ИНСТРУМЕНТОВ -->
+            <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px;">
+                <div>
+                    <div style="font-size:11px; font-weight:bold;">🛠️ Консоль отладки Eruda (шестерёнка)</div>
+                    <div style="font-size:9px; color:var(--text-dim);">Показывать мобильную консоль в правом нижнем углу</div>
+                </div>
+                <input type="checkbox" id="adm-toggle-eruda" style="transform:scale(1.3); cursor:pointer;" onchange="toggleErudaDevTools(this.checked)">
+            </div>
+
+            <!-- CYBER CLI -->
+            <div class="glass-card" style="border-color:var(--accent);">
+                <div class="admin-section-title">💻 Командная Консоль Системы (Cyber CLI)</div>
+                <div class="cli-container" style="margin-top:6px;">
+                    <div class="cli-output" id="admin-cli-output">
+                        <div style="color:var(--accent); font-weight:bold;">ВЯЧЕСЛАВ OS // CYBER CLI v2.4</div>
+                        <div style="color:var(--text-dim);">Введите <b>help</b> или кликните команду из списка ниже. Tab — дополнить.</div>
+                    </div>
+                    <div class="cli-suggestions-box" id="admin-cli-suggestions"></div>
+                    <div class="cli-input-row">
+                        <span class="cli-prompt-symbol">&gt;</span>
+                        <input type="text" id="admin-cli-input" class="cli-input-field" placeholder="Введите команду (напр. notify test, boss 3000)..." autocomplete="off">
+                        <button class="p-btn" style="padding:3px 8px; font-size:11px; background:var(--accent); color:#000; font-weight:bold;" onclick="runAdminCliCommand()">Ввод</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:10px; font-weight:700; color:var(--text-dim);">📋 Шпаргалка команд:</span>
+                        <span style="font-size:9px; color:var(--accent);">Tab — дополнить</span>
+                    </div>
+                    <div class="cli-cheatsheet-grid" id="admin-cli-cheatsheet"></div>
+                </div>
+            </div>
+
+            <!-- АДМИН-АБЬЮЗ ЭКСТРИМ ПУЛЬТ -->
+            <div class="glass-card" style="border-color:#ff007f; background:rgba(255,0,127,0.05);">
+                <div class="admin-section-title" style="color:#ff007f;">⚡ Пульт Серверного Хаоса & Наград (Abuse Экстрим)</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                    <button class="p-btn" style="background:#ef4444; color:#fff; font-weight:900;" onclick="adminSpawnWorldBoss(5000)">👾 Рейд-Босс</button>
+                    <button class="p-btn" style="background:#38bdf8; color:#000; font-weight:900;" onclick="adminTriggerAirDrop()">🪂 AirDrop</button>
+                    <button class="p-btn" style="background:linear-gradient(90deg,#ff007f,#ffd700); color:#000; font-weight:900;" onclick="adminTriggerFeverMultiplier(5, 45)">🔥 Лихорадка x5</button>
+                    <button class="p-btn" style="background:#ffd700; color:#000; font-weight:900;" onclick="adminTriggerJackpotWheel()">🎰 Джекпот</button>
+                </div>
+
+                <!-- НОВЫЕ ЭКСТРИМ-ИВЕНТЫ -->
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-bottom:6px;">
+                                        <button class="p-btn" style="background:#ffffff; color:#000; font-weight:900;" onclick="adminTriggerFlashbang()">💥 Flashbang Nuke</button>
+                    <button class="p-btn" style="background:#854d0e; color:#fff; font-weight:900;" onclick="adminTriggerCockroaches(28)">🪳 Тараканы (+25 🪙)</button>
+                    <button class="p-btn" style="background:#312e81; color:#c084fc; font-weight:900;" onclick="adminTriggerVortex()">🌀 Чёрная Дыра</button>
+                    <button class="p-btn" style="background:#eab308; color:#000; font-weight:900;" onclick="adminTriggerAirhorn()">📯 MLG Airhorn</button>
+                    <button class="p-btn" style="background:#0284c7; color:#fff; font-size:10px;" onclick="adminTriggerSlippyButtons(10)">🧈 Скользкие Кнопки</button>
+                    <button class="p-btn" style="background:#b91c1c; color:#ffd700; font-size:10px;" onclick="adminTriggerTaxRaid()">💼 Налоговый Рейд</button>
+                    <button class="p-btn" style="background:#991b1b; color:#fff; font-size:10px;" onclick="adminTriggerVirusAttack(6)">⚠️ Вирус-Шторм</button>
+                    <button class="p-btn" style="background:#1e1b4b; color:#c084fc; font-size:10px;" onclick="adminTriggerFlashlightBlind(8)">🔦 Блэкаут</button>
+                    <button class="p-btn" style="background:#b91c1c; color:#fff; font-size:10px;" onclick="adminTriggerJumpscare()">👻 Скример</button>
+                    <button class="p-btn" style="background:#0284c7; color:#fff; font-size:10px;" onclick="adminTriggerSpin()">🌀 Штопор 360°</button>
+                    <button class="p-btn" style="background:#dc2626; color:#fff; font-size:10px;" onclick="adminTriggerFakeBan()">🚫 Пермабан</button>
+                    <button class="p-btn" style="background:rgba(255,255,255,0.08); font-size:10px;" onclick="adminTriggerCoinRain(30)">🪙 Дождь</button>
+                </div>
+
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="abuse-custom-broadcast-inp" class="admin-input-compact" placeholder="Серверное оповещение..." style="flex:1;">
+                    <button class="p-btn" style="background:#b91c1c; color:#fff; font-weight:900;" onclick="adminTriggerBroadcast(document.getElementById('abuse-custom-broadcast-inp').value)">📢 Броадкаст</button>
+                </div>
+            </div>
+
+            <!-- СПЕЦ-АНИМАЦИИ -->
+            <div class="glass-card" style="border-color:var(--accent-warm); background:rgba(245,158,11,0.04);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <div class="admin-section-title" style="color:var(--accent-warm); margin-bottom:0;">🌀 Бесконечные Спец-Анимации</div>
+                    <button class="p-btn" style="padding:3px 8px; font-size:10px; color:var(--danger); border-color:var(--danger); font-weight:800;" onclick="stopAllSpecialAnimations()">⏹ Стоп все</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <button class="p-btn anim-toggle-btn" data-anim-id="crt" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('crt')">📺 CRT Ретро</button>
+                    <button class="p-btn anim-toggle-btn" data-anim-id="zerog" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('zerog')">🛸 Zero-G Парение</button>
+                    <button class="p-btn anim-toggle-btn" data-anim-id="rainbow" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('rainbow')">🌈 Кибер-Спектр</button>
+                    <button class="p-btn anim-toggle-btn" data-anim-id="warp" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('warp')">🚀 Варп-Прыжок</button>
+                    <button class="p-btn anim-toggle-btn" data-anim-id="matrix" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('matrix')">💻 Код Матрицы</button>
+                    <button class="p-btn anim-toggle-btn" data-anim-id="embers" style="padding:8px 4px; font-size:11px; font-weight:800;" onclick="toggleSpecialAnimation('embers')">🔥 Искры</button>
+                </div>
+            </div>
+
+            <!-- БЭКАПЫ -->
+            <div class="glass-card">
+                <div class="admin-section-title">🗄️ Снимки и Версионирование OS</div>
+                <div style="display:flex; gap:6px; margin-top:4px;">
+                    <select id="adm-backup-select" class="settings-select" style="flex:1;">
+                        <option value="LATEST">⚡ АКТУАЛЬНАЯ ВЕРСИЯ</option>
+                    </select>
+                    <button class="p-btn" style="background:var(--accent); color:#000; font-weight:800;" onclick="adminRestoreSelectedVersion()">Запустить</button>
+                    <button class="p-btn" style="color:var(--danger); border-color:var(--danger); font-weight:800;" onclick="adminDeleteSelectedVersion()">🗑️</button>
+                </div>
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button class="p-btn" style="flex:1; background:rgba(56,189,248,0.18); border-color:var(--accent); font-weight:800; font-size:11px; padding:8px 4px;" onclick="adminCreateNewBackupSnapshot()">💾 Создать снимок</button>
+                    <button class="p-btn" style="flex:1; background:rgba(239,68,68,0.15); border-color:var(--danger); color:var(--danger); font-weight:800; font-size:11px; padding:8px 4px;" onclick="adminDeleteAllOldBackups()">🧹 Очистить всё до актуальной</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. ПАСХАЛКИ -->
+    <div id="tab-eggs" class="screen">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <b>Пасхалки</b>
+            <span id="egg-count" style="color:var(--accent-warm); font-weight:800;">0 / 5</span>
+        </div>
+        <div id="eggs-container"></div>
+    </div>
+
+    <!-- 13. ИГРОВОЙ ЭКРАН -->
+    <div id="tab-gameplay" class="screen">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:8px;">
+            <button class="p-btn" style="padding:4px 10px; font-size:12px;" onclick="showTab('hub')">◄ Каталог</button>
+            <div id="game-title" style="font-size:15px; font-weight:800; color:var(--accent);">Игра</div>
+            <button class="p-btn" style="padding:4px 8px; font-size:12px;" onclick="restartCurrentGame()">🔄 Заново</button>
+        </div>
+        <div id="game-mount" style="width:100%; display:flex; justify-content:center;"></div>
+    </div>
+
+    <!-- ОВЕРЛЕИ АДМИН-АБЬЮЗА -->
+    <div id="abuse-fever-banner"><span id="abuse-fever-txt">🔥 ЛИХОРАДКА x5 МОНЕТ АКТИВНА</span></div>
+
+    <div id="abuse-boss-widget">
+        <div style="font-size:12px; font-weight:900; color:#ef4444; letter-spacing:1px; margin-bottom:4px;">🚨 КВАНТОВЫЙ ЛЕВИАФАН 🚨</div>
+        <div class="boss-avatar-box" onclick="hitWorldBoss(event)">👾</div>
+        <div style="width:100%; height:8px; background:#0b1220; border-radius:4px; overflow:hidden; margin:8px 0 4px; border:1px solid #ef4444;">
+            <div id="abuse-boss-hp-bar" style="width:100%; height:100%; background:linear-gradient(90deg, #ef4444, #f59e0b); transition:width 0.1s;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-dim);">
+            <span>Здоровье:</span>
+            <b id="abuse-boss-hp-txt" style="color:#fff;">5000 / 5000</b>
+        </div>
+        <div style="font-size:9px; color:#ffd700; margin-top:4px;">Тапайте по боссу!</div>
+    </div>
+
+    <div id="abuse-broadcast-overlay">
+        <div style="font-size:16px; font-weight:900; letter-spacing:1px;">🚨 [СЕРВЕРНАЯ ТРЕВОГА] 🚨</div>
+        <div id="abuse-broadcast-txt" style="font-size:13px; margin-top:4px; font-weight:bold;">ВНИМАНИЕ!</div>
+    </div>
+
+    <div id="abuse-freeze-overlay">
+        <div style="font-size:48px; margin-bottom:8px;">❄️</div>
+        <b style="font-size:20px; font-weight:900; text-shadow:0 0 14px #38bdf8;">СИСТЕМА ЗАМОРОЖЕНА АДМИНОМ</b>
+        <div style="font-size:12px; color:rgba(255,255,255,0.8); margin-top:4px;">Разморозка через: <b id="abuse-freeze-countdown" style="color:#ffd700; font-size:18px;">6</b> сек</div>
+    </div>
+
+    <div id="abuse-bsod-overlay">
+        <div style="font-size:64px; margin-bottom:12px;">:(</div>
+        <div style="font-size:18px; font-weight:bold; margin-bottom:8px;">CRITICAL_ADMIN_ABUSE_OVERLOAD (0x000000DEAD)</div>
+        <div style="font-size:13px;">Сбор данных об ошибке: <b id="abuse-bsod-prog">0%</b></div>
+    </div>
+
+    <div id="abuse-jumpscare-overlay">
+        <div class="jumpscare-face">👹</div>
+        <div style="font-size:26px; font-weight:900; color:#ff0055; margin-top:12px;">BOO! 💀</div>
+    </div>
+
+    <div id="abuse-blind-overlay"></div>
+
+    <div id="abuse-fakeban-overlay">
+        <div style="font-size:64px;">🚫</div>
+        <b style="font-size:22px; color:#ef4444; margin:10px 0;">ВАШ АККАУНТ ЗАБЛОКИРОВАН</b>
+        <div style="font-size:12px; color:#cbd5e1; max-width:320px; margin-bottom:14px;">Решением администратора Вячеслав OS ваш доступ приостановлен за превышение лимитов хаоса.</div>
+        <div style="font-size:11px; color:#ffd700;">Разблокировка через: <b id="abuse-ban-countdown">7</b> сек</div>
+    </div>
+
+    <!-- ТЕРМИНАЛ PRO -->
+    <div id="market-pro-terminal" style="display:none; position:fixed; inset:0; background:#030611; z-index:10000; flex-direction:column; padding:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid var(--border);">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="p-btn" style="padding:4px 10px; font-size:12px;" onclick="toggleMarketProMode(false)">◄ В систему</button>
+                <b id="market-pro-symbol" style="font-size:15px; color:#fff;">$BANK / COIN</b>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="p-btn m-chart-type-btn active" id="btn-chart-candles" style="padding:4px 8px; font-size:10px;" onclick="setMarketChartType('candles')">📊 Свечи</button>
+                <button class="p-btn m-chart-type-btn" id="btn-chart-line" style="padding:4px 8px; font-size:10px;" onclick="setMarketChartType('line')">📈 Линия</button>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0;">
+            <div>
+                <span style="font-size:11px; color:var(--text-dim);">Котировка:</span>
+                <div id="market-pro-price" style="font-size:22px; font-weight:900; color:var(--accent);">420 🪙</div>
+            </div>
+            <div style="display:flex; gap:4px;">
+                <button class="p-btn m-lev-btn active" id="btn-lev-1" style="padding:4px 8px; font-size:10px;" onclick="setMarketLeverage(1)">x1</button>
+                <button class="p-btn m-lev-btn" id="btn-lev-2" style="padding:4px 8px; font-size:10px;" onclick="setMarketLeverage(2)">x2</button>
+                <button class="p-btn m-lev-btn" id="btn-lev-5" style="padding:4px 8px; font-size:10px; color:#ffd700;" onclick="setMarketLeverage(5)">x5 ⚡</button>
+            </div>
+        </div>
+
+        <div style="flex:1; min-height:180px; position:relative; background:#02040a; border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+            <canvas id="market-pro-canvas" width="360" height="220" style="width:100%; height:100%; display:block;"></canvas>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+            <div id="market-order-book" style="background:#060a18; border:1px solid var(--border); border-radius:8px; padding:6px 8px; max-height:110px; overflow:hidden;"></div>
+            <div style="display:flex; flex-direction:column; gap:6px; justify-content:center;">
+                <button class="p-btn" style="background:#10b981; color:#000; font-weight:900; padding:10px; font-size:13px;" onclick="openMarginPosition('long')">▲ LONG (В РОСТ)</button>
+                <button class="p-btn" style="background:#ef4444; color:#fff; font-weight:900; padding:10px; font-size:13px;" onclick="openMarginPosition('short')">▼ SHORT (В ПАДЕНИЕ)</button>
+            </div>
+        </div>
+
+        <div style="margin-top:8px;">
+            <div style="font-size:10px; font-weight:700; color:var(--text-dim); margin-bottom:4px;">ОТКРЫТЫЕ ПОЗИЦИИ</div>
+            <div id="market-positions-wrap" style="max-height:100px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- ПОДКЛЮЧЕНИЕ МОДУЛЕЙ -->
+    <script src="js/notes.js"></script>
+    <script src="js/calc.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/market.js"></script>
+    <script src="js/cyberware.js"></script>
+    <script src="js/special_anims.js"></script>
+    <script src="js/admin_abuse.js"></script>
+    <script src="js/admin_cli.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/core.js"></script>
+
+    <!-- ИГРЫ -->
+    <script src="games/survivors.js"></script>
+    <script src="games/snake.js"></script>
+    <script src="games/jump.js"></script>
+    <script src="games/blockblast.js"></script>
+    <script src="games/party4p.js"></script>
+    <script src="games/sumo4p.js"></script>
+    <script src="games/racer.js"></script>
+    <script src="games/game2048.js"></script>
+    <script src="games/minesweeper.js"></script>
+    <script src="games/lights.js"></script>
+    <script src="games/clicker.js"></script>
+
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ -->
+    
+
+
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ (LOGIN / REGISTER / 2FA) -->
+    
+
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЙКИ 2FA -->
+    
+
+
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ (БЕЗ ДИНАМИЧЕСКОГО УНИЧТОЖЕНИЯ DOM) -->
+    
+
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЙКИ 2FA С КОПИРОВАНИЕМ -->
+    
+
+
+    <div id="os-auth-modal" style="display:none; position:fixed; inset:0; z-index:10050; background:rgba(3,7,18,0.92); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); align-items:center; justify-content:center; padding:16px;">
+        <div class="auth-card" style="width:100%; max-width:320px;">
+            <div style="font-size:36px; margin-bottom:4px;">🔐</div>
+            <b id="auth-title-txt" style="font-size:15px; color:#fff;">Авторизация в системе</b>
+            <div id="auth-sub-txt" style="font-size:10px; color:var(--text-dim); margin-top:2px;">Вячеслав OS // Безопасное ядро</div>
+
+            <div class="auth-tabs-row" id="auth-tabs-container">
+                <button type="button" class="auth-tab-btn active" id="auth-tab-login" onclick="switchAuthMode('login')">Вход</button>
+                <button type="button" class="auth-tab-btn" id="auth-tab-register" onclick="switchAuthMode('register')">Регистрация</button>
+            </div>
+
+            <form id="auth-main-form" onsubmit="submitAuthForm(event)">
+                <input type="hidden" id="auth-modal-mode" value="login">
+
+                <div id="auth-credentials-section">
+                    <input type="text" id="auth-login-inp" class="auth-input" placeholder="Логин (например, Вячеслав)" autocomplete="username">
+                    <input type="password" id="auth-pass-inp" class="auth-input" placeholder="Пароль" autocomplete="current-password">
+                </div>
+
+                <div id="auth-2fa-section" style="display:none;">
+                    <div style="font-size:11px; color:var(--accent-warm); margin-bottom:8px;">
+                        Введите 6 цифр из Google Authenticator:
+                    </div>
+                    <input type="text" id="auth-2fa-code-inp" class="auth-input" placeholder="000 000" maxlength="8" inputmode="numeric" style="font-size:24px; text-align:center; letter-spacing:6px; font-weight:900;" autocomplete="one-time-code">
+                </div>
+
+                <div style="display:flex; gap:6px; margin-top:8px;">
+                    <button type="button" class="p-btn" style="flex:1; padding:9px; font-size:11px;" onclick="closeAuthModal()">Отмена</button>
+                    <button type="submit" id="auth-submit-btn" class="p-btn" style="flex:2; padding:9px; font-size:12px; background:var(--accent); color:#000; font-weight:900;">Войти в аккаунт</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="os-2fa-setup-modal" style="display:none; position:fixed; inset:0; z-index:10055; background:rgba(3,7,18,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); align-items:center; justify-content:center; padding:16px;">
+        <div class="auth-card" style="max-width:320px;">
+            <b style="font-size:15px; color:#10b981;">🔐 Настройка 2FA (Authenticator)</b>
+            <div style="font-size:10px; color:var(--text-dim); margin:4px 0 8px;">Отсканируйте QR-код или нажмите для копирования ключа:</div>
+
+            <img id="os-2fa-qr-img" src="" style="width:150px; height:150px; border-radius:10px; background:#fff; padding:6px; margin:0 auto 8px; display:block;">
+
+            <div onclick="copy2FASecretKey()" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.55); border:1px solid rgba(255,215,0,0.4); border-radius:8px; padding:7px 10px; margin-bottom:10px; transition:0.15s;" title="Кликните для копирования">
+                <div style="text-align:left; overflow:hidden;">
+                    <div style="font-size:8px; color:var(--text-dim); text-transform:uppercase;">Ключ настройки:</div>
+                    <code id="os-2fa-key-txt" style="color:#ffd700; font-size:12px; font-weight:900; letter-spacing:1px;">SECRET_KEY</code>
+                </div>
+                <button type="button" class="p-btn" style="padding:3px 8px; font-size:10px; margin-left:6px; pointer-events:none;">📋 Копия</button>
+            </div>
+
+            <input type="text" id="os-2fa-confirm-inp" class="auth-input" placeholder="000 000" maxlength="8" inputmode="numeric" style="text-align:center; font-size:18px; letter-spacing:4px; font-weight:bold; margin-bottom:8px;">
+
+            <div style="display:flex; gap:6px;">
+                <button type="button" class="p-btn" style="flex:1; font-size:11px;" onclick="document.getElementById('os-2fa-setup-modal').style.display='none'">Отмена</button>
+                <button type="button" class="p-btn" style="flex:2; background:#10b981; color:#000; font-weight:900; font-size:11px;" onclick="confirmAndEnable2FA()">Активировать ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="abuse-flashbang-overlay"></div>
+</body>
+</html>

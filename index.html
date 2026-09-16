@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dadarba // Каталог проектов</title>
+    <style>
+        :root {
+            --bg: #090d16;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #38bdf8;
+            --gold: #ffd700;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 18px 14px 60px; min-height: 100vh; }
+        .header { text-align: center; margin-bottom: 22px; }
+        .header h1 { font-size: 22px; color: #fff; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; max-width: 900px; margin: 0 auto; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; backdrop-filter: blur(8px); }
+        .card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .card-icon { font-size: 30px; background: rgba(255,255,255,0.05); border-radius: 10px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; }
+        .card-title { font-size: 15px; font-weight: 800; color: #fff; }
+        .card-tag { font-size: 9px; text-transform: uppercase; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block; }
+        .tag-os { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+        .tag-game { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-bottom: 14px; }
+        .card-actions { display: flex; gap: 8px; }
+        .btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer; text-align: center; text-decoration: none; }
+        .btn-run { background: var(--accent); color: #000; }
+        .btn-run:active { opacity: 0.8; }
+        .btn-code { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
+
+        /* Полноэкранный плеер запуска */
+        #runner-modal { display: none; position: fixed; inset: 0; z-index: 10000; background: #000; flex-direction: column; }
+        .runner-bar { height: 44px; background: #0f172a; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
+        .runner-title { font-size: 13px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+        .runner-close { background: #ef4444; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        #runner-frame { flex: 1; border: none; width: 100%; height: calc(100% - 44px); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Портфолио проектов Dadarba</h1>
+        <p>Веб-витрина // Кликните «Запустить», чтобы открыть проект в браузере</p>
+    </div>
+
+    <div class="grid">
+        <!-- 1. Vyacheslav OS -->
+        <div class="card">
+            <div>
+                <div class="card-top">
+                    <div class="card-icon">👑</div>
+                    <div>
+                        <div class="card-title">Vyacheslav OS</div>
+                        <span class="card-tag tag-os">Web OS // Cyber Core</span>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    Операционная система в браузере: каталог из 11 игр, пасхалки с музыкой, консоль Cyber CLI, кейсы и прокачка профиля.
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-run" onclick="launchApp('projects/vyacheslav-os/index.html', 'Vyacheslav OS')">▶ Запустить OS</button>
+                <a href="https://github.com/Dadarba/native-os" target="_blank" class="btn btn-code">GitHub</a>
+            </div>
+        </div>
+
+        <!-- 2. Cyber Survivors -->
+        <div class="card">
+            <div>
+                <div class="card-top">
+                    <div class="card-icon">⚡</div>
+                    <div>
+                        <div class="card-title">Cyber Survivors 3.0</div>
+                        <span class="card-tag tag-game">Survival Roguelike</span>
+                    </div>
+                </div>
+                <div class="card-desc">
+                    Динамичный рогалик на выживание: волны кибер-ботов, рывок, прокачка оружия и таблица рекордов.
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-run" onclick="launchApp('projects/vyacheslav-os/index.html', 'Cyber Survivors')">▶ Играть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фрейм запуска -->
+    <div id="runner-modal">
+        <div class="runner-bar">
+            <span class="runner-title" id="runner-app-title">⚡ Запуск приложения</span>
+            <button class="runner-close" onclick="closeApp()">✕ Закрыть проект</button>
+        </div>
+        <iframe id="runner-frame" src="about:blank"></iframe>
+    </div>
+
+    <script>
+        function launchApp(url, title) {
+            document.getElementById('runner-app-title').innerText = '▶ ' + title;
+            document.getElementById('runner-frame').src = url;
+            document.getElementById('runner-modal').style.display = 'flex';
+        }
+        function closeApp() {
+            document.getElementById('runner-frame').src = 'about:blank';
+            document.getElementById('runner-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
