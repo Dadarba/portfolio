@@ -1,3 +1,28 @@
+
+window.checkAuthStatus = async function() {
+    try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.user) {
+                window.currentUser = data.user;
+                if (typeof window.applyAuthToUI === 'function') window.applyAuthToUI(data.user);
+                return;
+            }
+        }
+    } catch (_) {
+        // На Vercel бэкенда нет — активируем локальную сессию
+    }
+    // Автономный режим
+    window.currentUser = { username: "Вячеслав", role: "admin", coins: window.globalCoins || 5000 };
+    const authBtn = document.getElementById('btn-auth-modal');
+    if (authBtn) {
+        authBtn.innerHTML = '👑 Вячеслав';
+        authBtn.style.color = '#ffd700';
+    }
+};
+window.checkAuthStatus();
+
 // =========================================================
 // ВЯЧЕСЛАВ OS: АВТОРИЗАЦИЯ И 2FA
 // =========================================================

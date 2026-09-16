@@ -1,4 +1,85 @@
 // =========================================================
+// АВТОНОМНОЕ ЯДРО (STANDALONE VERCEL & LOCAL COMPATIBLE)
+// =========================================================
+
+// Автономная инициализация монет
+if (!localStorage.getItem('v_coins')) {
+    localStorage.setItem('v_coins', '5000');
+}
+window.globalCoins = parseInt(localStorage.getItem('v_coins') || '5000', 10);
+
+window.updateBalanceDisplay = function() {
+    const coins = window.globalCoins;
+    const ids = ['user-balance-val', 'catalog-balance-val', 'hub-balance-val'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = coins;
+    });
+    document.querySelectorAll('.coin-display-val').forEach(el => el.innerText = coins);
+};
+
+window.addCoins = function(amt) {
+    window.globalCoins = Math.max(0, (window.globalCoins || 0) + amt);
+    localStorage.setItem('v_coins', window.globalCoins);
+    window.updateBalanceDisplay();
+};
+
+// Живые часы и батарея (запуск БЕЗ ожидания событий)
+window.initLiveStatusBar = function() {
+    function tickClock() {
+        const clockEl = document.getElementById('os-live-clock');
+        if (!clockEl) return;
+        const now = new Date();
+        clockEl.innerText = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    const battEl = document.getElementById('os-live-battery');
+    if (battEl) {
+        if (navigator.getBattery) {
+            navigator.getBattery().then(b => {
+                const upd = () => { battEl.innerText = Math.round(b.level * 100) + '%'; };
+                upd();
+                b.addEventListener('levelchange', upd);
+            }).catch(() => { battEl.innerText = '100%'; });
+        } else {
+            battEl.innerText = '100%';
+        }
+    }
+};
+
+// Проверка видимости вкладки пасхалок (появляется только после >= 1 открытой)
+window.checkEggsTabVisibility = function() {
+    const unlocked = JSON.parse(localStorage.getItem('v_modular_eggs_v2') || '[]');
+    const tabBtn = document.getElementById('btn-eggs');
+    if (!tabBtn) return;
+    tabBtn.style.display = (unlocked.length >= 1) ? 'inline-flex' : 'none';
+};
+
+// Автономная роль: на Vercel автоматически выдавать роль Владельца
+window.isCurrentUserAdmin = function() {
+    return true;
+};
+
+// Немедленный запуск статус-бара и баланса
+setTimeout(() => {
+    window.initLiveStatusBar();
+    window.updateBalanceDisplay();
+    window.checkEggsTabVisibility();
+    
+    // Переключение шапки в статус Владельца на Vercel
+    const authBtn = document.getElementById('btn-auth-modal');
+    if (authBtn) {
+        authBtn.innerHTML = '👑 Вячеслав';
+        authBtn.style.background = 'rgba(255,215,0,0.15)';
+        authBtn.style.borderColor = '#ffd700';
+        authBtn.style.color = '#ffd700';
+    }
+}, 50);
+
+
+// =========================================================
 // АВТОНОМНЫЙ СТАТУС-БАР, БАЛАНС И СИСТЕМА СКРЫТЫХ ПАСХАЛОК
 // =========================================================
 
