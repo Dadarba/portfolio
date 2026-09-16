@@ -3,46 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dadarba // Проекты</title>
+    <title>Dadarba // Центр управления и портфолио</title>
     <style>
         :root {
-            --bg: #090d16;
-            --card-bg: rgba(255, 255, 255, 0.04);
+            --bg: #070a12;
+            --card-bg: rgba(255, 255, 255, 0.035);
             --border: rgba(255, 255, 255, 0.08);
             --accent: #38bdf8;
+            --accent-warm: #ffd700;
             --text: #f8fafc;
             --text-dim: #94a3b8;
+            --danger: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 24px 14px 60px; min-height: 100vh; }
-        .header { text-align: center; margin-bottom: 24px; }
-        .header h1 { font-size: 22px; color: #fff; font-weight: 800; }
-        .header p { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+        body { background: var(--bg); color: var(--text); padding: 20px 14px 60px; min-height: 100vh; overflow-x: hidden; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; max-width: 800px; margin: 0 auto; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; backdrop-filter: blur(8px); }
-        .card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-        .card-icon { font-size: 32px; background: rgba(255,255,255,0.05); border-radius: 10px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+        .header { text-align: center; margin-bottom: 24px; }
+        .header h1 { font-size: 24px; color: #fff; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 16px; max-width: 900px; margin: 0 auto; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .card-icon { font-size: 34px; background: rgba(255,255,255,0.04); border-radius: 12px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
         .card-title { font-size: 16px; font-weight: 800; color: #fff; }
-        .card-tag { font-size: 9px; text-transform: uppercase; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: var(--accent); margin-top: 2px; display: inline-block; }
-        .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-bottom: 16px; }
-        .card-actions { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 10px; font-size: 12px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer; text-align: center; text-decoration: none; }
+        .card-tag { font-size: 9px; text-transform: uppercase; font-weight: 900; padding: 3px 7px; border-radius: 5px; background: rgba(56, 189, 248, 0.15); color: var(--accent); display: inline-block; margin-top: 3px; }
+        .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.45; margin-bottom: 18px; }
+        
+        .card-actions { display: flex; flex-direction: column; gap: 8px; }
+        .btn-row { display: flex; gap: 8px; }
+        .btn { flex: 1; padding: 11px; font-size: 12px; font-weight: 800; border-radius: 9px; border: none; cursor: pointer; text-align: center; text-decoration: none; transition: 0.15s; }
         .btn-run { background: var(--accent); color: #000; }
+        .btn-external { background: rgba(255, 215, 0, 0.12); color: var(--accent-warm); border: 1px solid rgba(255, 215, 0, 0.3); }
         .btn-code { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
 
-        #runner-modal { display: none; position: fixed; inset: 0; z-index: 10000; background: #000; flex-direction: column; }
-        .runner-bar { height: 44px; background: #0f172a; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
-        .runner-title { font-size: 13px; font-weight: bold; color: var(--accent); }
-        .runner-close { background: #ef4444; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 900; cursor: pointer; }
-        #runner-frame { flex: 1; border: none; width: 100%; height: calc(100% - 44px); }
+        /* Полноэкранный Web Runner */
+        #runner-modal { display: none; position: fixed; inset: 0; z-index: 99999; background: #000; flex-direction: column; }
+        .runner-bar { height: 46px; background: #0c1220; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 12px; }
+        .runner-title { font-size: 13px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+        .runner-close { background: var(--danger); border: none; color: #fff; padding: 6px 14px; border-radius: 7px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        #runner-frame { flex: 1; border: none; width: 100%; height: calc(100% - 46px); }
+
+        /* Глобальные эффекты абьюза на странице портфолио */
+        #hub-flashbang-overlay { display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; background: #fff; z-index: 9999999; pointer-events: none; }
+        #hub-broadcast-box { display: none; position: fixed; inset: 0; background: rgba(220, 38, 38, 0.92); z-index: 999999; color: #fff; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; font-weight: 900; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Каталог проектов Dadarba</h1>
-        <p>Веб-витрина // Запуск проектов из приватных репозиториев</p>
+        <h1>Dadarba // Проекты и веб-версии</h1>
+        <p>Нажмите «Запустить здесь» для встроенного фрейма или «Открыть сайт» для отдельной вкладки</p>
     </div>
 
     <div class="grid">
@@ -53,40 +64,118 @@
                     <div class="card-icon">👑</div>
                     <div>
                         <div class="card-title">Vyacheslav OS</div>
-                        <span class="card-tag">Web OS // Cyber Core</span>
+                        <span class="card-tag">Web OS // 2FA Core</span>
                     </div>
                 </div>
                 <div class="card-desc">
-                    Полноценная браузерная ОС: каталог игр, пасхалки, консоль Cyber CLI, кейсы и защита 2FA.
+                    Полноценная браузерная ОС: 11 игр, секретные пасхалки с музыкой, Cyber CLI, 2FA-защита и система глобального Админ-Абьюза.
                 </div>
             </div>
             <div class="card-actions">
-                <!-- Замените ССЫЛКУ ниже на полученный URL вашего задеплоенного приватного репозитория -->
-                <button class="btn btn-run" onclick="launchProject('projects/vyacheslav-os/index.html', 'Vyacheslav OS')">▶ Запустить проект</button>
-                <a href="https://github.com/Dadarba/native-os" target="_blank" class="btn btn-code">GitHub (Private)</a>
+                <div class="btn-row">
+                    <button class="btn btn-run" onclick="launchInFrame('projects/vyacheslav-os/index.html', 'Vyacheslav OS')">▶ Запустить здесь</button>
+                    <a href="projects/vyacheslav-os/index.html" target="_blank" class="btn btn-external">↗ Открыть сайт</a>
+                </div>
+                <a href="https://github.com/Dadarba/native-os" target="_blank" class="btn btn-code">GitHub (Код проекта)</a>
             </div>
         </div>
     </div>
 
-    <!-- ФРЕЙМ ЗАПУСКА ПРОЕКТА -->
+    <!-- Модальное окно встроенного запуска -->
     <div id="runner-modal">
         <div class="runner-bar">
-            <span class="runner-title" id="runner-app-title">⚡ Запуск</span>
-            <button class="runner-close" onclick="closeProject()">✕ Закрыть и выйти</button>
+            <span class="runner-title" id="runner-app-title">⚡ Vyacheslav OS</span>
+            <button class="runner-close" onclick="closeFrame()">✕ Закрыть проект</button>
         </div>
-        <iframe id="runner-frame" src="about:blank"></iframe>
+        <iframe id="runner-frame" src="about:blank" allow="autoplay; microphone; camera;"></iframe>
+    </div>
+
+    <!-- Оверлеи глобального абьюза на уровне портфолио -->
+    <div id="hub-flashbang-overlay"></div>
+    <div id="hub-broadcast-box">
+        <div style="font-size:42px; margin-bottom:12px;">🚨</div>
+        <div style="font-size:20px; text-transform:uppercase; letter-spacing:2px; margin-bottom:8px;">ГЛОБАЛЬНАЯ ТРЕВОГА АДМИНА</div>
+        <div id="hub-broadcast-msg" style="font-size:16px; max-width:85%; background:rgba(0,0,0,0.4); padding:12px 18px; border-radius:10px; margin-bottom:20px;"></div>
+        <button class="btn" style="background:#fff; color:#000; max-width:180px;" onclick="document.getElementById('hub-broadcast-box').style.display='none'">Принято</button>
     </div>
 
     <script>
-        function launchProject(url, title) {
-            document.getElementById('runner-app-title').innerText = '▶ ' + title;
+        function launchInFrame(url, title) {
+            document.getElementById('runner-app-title').innerText = '⚡ ' + title;
             document.getElementById('runner-frame').src = url;
             document.getElementById('runner-modal').style.display = 'flex';
         }
-        function closeProject() {
+
+        function closeFrame() {
             document.getElementById('runner-frame').src = 'about:blank';
             document.getElementById('runner-modal').style.display = 'none';
         }
+
+        // =========================================================
+        // ПРИЁМ И ИСПОЛНЕНИЕ ГЛОБАЛЬНОГО АДМИН-АБЬЮЗА
+        // =========================================================
+        const abuseChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vyacheslav_abuse_bus') : null;
+
+        function executeHubAbuse(action, data) {
+            if (action === 'flashbang') {
+                const flash = document.getElementById('hub-flashbang-overlay');
+                if (!flash) return;
+                flash.style.display = 'block';
+                flash.style.opacity = '1';
+                flash.style.transition = 'none';
+                
+                // Звуковой эффект вспышки
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.frequency.setValueAtTime(3200, ctx.currentTime);
+                    g.gain.setValueAtTime(0.3, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3.5);
+                    osc.connect(g); g.connect(ctx.destination);
+                    osc.start(); osc.stop(ctx.currentTime + 3.5);
+                } catch (_) {}
+
+                void flash.offsetWidth;
+                flash.style.transition = 'opacity 3.5s cubic-bezier(0.1, 0.9, 0.2, 1)';
+                flash.style.opacity = '0';
+                setTimeout(() => { flash.style.display = 'none'; }, 3600);
+
+            } else if (action === 'broadcast') {
+                const box = document.getElementById('hub-broadcast-box');
+                const msg = document.getElementById('hub-broadcast-msg');
+                if (box && msg) {
+                    msg.innerText = (data && data.text) ? data.text : 'ВНИМАНИЕ! Сообщение от Создателя!';
+                    box.style.display = 'flex';
+                }
+            } else if (action === 'shake') {
+                document.body.style.animation = 'hubShake 0.4s ease-in-out';
+                setTimeout(() => document.body.style.animation = '', 450);
+            }
+        }
+
+        if (abuseChannel) {
+            abuseChannel.onmessage = (e) => {
+                if (e.data && e.data.action) executeHubAbuse(e.data.action, e.data.data || {});
+            };
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'VYACHESLAV_GLOBAL_ABUSE') {
+                executeHubAbuse(e.data.action, e.data.data || {});
+            }
+        });
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'v_abuse_event' && e.newValue) {
+                try {
+                    const ev = JSON.parse(e.newValue);
+                    if (Date.now() - ev.timestamp < 3000) {
+                        executeHubAbuse(ev.action, ev.data || {});
+                    }
+                } catch (_) {}
+            }
+        });
     </script>
 </body>
 </html>

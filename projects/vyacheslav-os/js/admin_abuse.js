@@ -1,4 +1,60 @@
 // =========================================================
+// ГЛОБАЛЬНАЯ ШИНА АДМИН-АБЬЮЗА (CROSS-WINDOW SYNC BUS)
+// =========================================================
+const abuseChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('vyacheslav_abuse_bus') : null;
+
+window.emitGlobalAbuse = function(action, data = {}) {
+    const payload = { action, data, timestamp: Date.now() };
+    
+    // 1. Отправка соседям через BroadcastChannel
+    if (abuseChannel) {
+        try { abuseChannel.postMessage(payload); } catch (_) {}
+    }
+    // 2. Отправка родителю (если открыто во фрейме портфолио)
+    if (window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'VYACHESLAV_GLOBAL_ABUSE', action, data }, '*'); } catch (_) {}
+    }
+    // 3. Резервная синхронизация через localStorage
+    try {
+        localStorage.setItem('v_abuse_event', JSON.stringify(payload));
+    } catch (_) {}
+};
+
+// Приём команд от других окон или родительского хаба
+function handleIncomingAbuse(action, data) {
+    if (action === 'flashbang') {
+        if (typeof window.adminTriggerFlashbangInternal === 'function') window.adminTriggerFlashbangInternal();
+    } else if (action === 'shake') {
+        if (typeof window.adminTriggerShakeInternal === 'function') window.adminTriggerShakeInternal(data.intensity);
+    } else if (action === 'broadcast') {
+        if (typeof window.adminTriggerBroadcastInternal === 'function') window.adminTriggerBroadcastInternal(data.text);
+    } else if (action === 'bugs') {
+        if (typeof window.adminTriggerBugsInternal === 'function') window.adminTriggerBugsInternal(data.count);
+    } else if (action === 'vortex') {
+        if (typeof window.adminTriggerVortexInternal === 'function') window.adminTriggerVortexInternal();
+    } else if (action === 'matrix') {
+        if (typeof window.setLiveWallpaper === 'function') window.setLiveWallpaper('matrix');
+    }
+}
+
+if (abuseChannel) {
+    abuseChannel.onmessage = (e) => {
+        if (e.data && e.data.action) handleIncomingAbuse(e.data.action, e.data.data || {});
+    };
+}
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'v_abuse_event' && e.newValue) {
+        try {
+            const ev = JSON.parse(e.newValue);
+            if (Date.now() - ev.timestamp < 3000) {
+                handleIncomingAbuse(ev.action, ev.data || {});
+            }
+        } catch (_) {}
+    }
+});
+
+// =========================================================
 // ВЯЧЕСЛАВ OS: АДМИН-АБЬЮЗ ЭКСТРИМ
 // =========================================================
 
@@ -393,7 +449,13 @@
 // =========================================================
 
 // 1. СВЕТОШУМОВАЯ ВСПЫШКА (FLASHBANG NUKE)
+window.adminTriggerFlashbangInternal = function() {
+};
 window.adminTriggerFlashbang = function() {
+    window.emitGlobalAbuse("flashbang");
+    window.adminTriggerFlashbangInternal();
+};
+window.adminTriggerFlashbangInternal = function() {
     let flash = document.getElementById('abuse-flashbang-overlay');
     if (!flash) {
         flash = document.createElement('div');
