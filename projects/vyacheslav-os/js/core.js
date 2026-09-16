@@ -1,4 +1,98 @@
 // =========================================================
+// АВТОНОМНЫЙ СТАТУС-БАР, БАЛАНС И СИСТЕМА СКРЫТЫХ ПАСХАЛОК
+// =========================================================
+
+// 1. Монеты и баланс с сохранением в LocalStorage (работает на Vercel без сервера)
+window.globalCoins = parseInt(localStorage.getItem('v_coins') || '5000', 10);
+
+window.updateBalanceDisplay = function() {
+    const b1 = document.getElementById('user-balance-val');
+    const b2 = document.getElementById('catalog-balance-val');
+    const allCoins = document.querySelectorAll('.coin-display-val');
+    if (b1) b1.innerText = window.globalCoins;
+    if (b2) b2.innerText = window.globalCoins;
+    allCoins.forEach(el => el.innerText = window.globalCoins);
+};
+
+window.addCoins = function(amt) {
+    window.globalCoins = Math.max(0, (window.globalCoins || 0) + amt);
+    localStorage.setItem('v_coins', window.globalCoins);
+    window.updateBalanceDisplay();
+};
+
+// 2. Живые часы и индикатор батареи
+window.initLiveStatusBar = function() {
+    function tickClock() {
+        const clockEl = document.getElementById('os-live-clock');
+        if (!clockEl) return;
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        clockEl.innerText = `${h}:${m}`;
+    }
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    const battEl = document.getElementById('os-live-battery');
+    if (navigator.getBattery) {
+        navigator.getBattery().then(b => {
+            const updateBatt = () => {
+                if (battEl) battEl.innerText = Math.round(b.level * 100) + '%';
+            };
+            updateBatt();
+            b.addEventListener('levelchange', updateBatt);
+        }).catch(() => {});
+    } else if (battEl) {
+        battEl.innerText = '100%';
+    }
+};
+
+// 3. Проверка видимости вкладки пасхалок (появляется только после >= 1 открытой)
+window.checkEggsTabVisibility = function() {
+    const unlocked = JSON.parse(localStorage.getItem('v_modular_eggs_v2') || '[]');
+    const tabBtn = document.getElementById('btn-eggs');
+    if (!tabBtn) return;
+
+    if (unlocked.length >= 1) {
+        tabBtn.style.display = 'inline-flex';
+    } else {
+        tabBtn.style.display = 'none';
+    }
+};
+
+// 4. Разблокировка пасхалки с открытием секретной вкладки
+window.unlockEgg = function(id) {
+    let unlocked = JSON.parse(localStorage.getItem('v_modular_eggs_v2') || '[]');
+    const isFirstEgg = (unlocked.length === 0);
+
+    if (!unlocked.includes(id)) {
+        unlocked.push(id);
+        localStorage.setItem('v_modular_eggs_v2', JSON.stringify(unlocked));
+        const egg = (window.EGGS_CONFIG || []).find(e => e.id === id);
+        const rew = egg ? egg.reward : 350;
+        window.addCoins(rew);
+
+        if (isFirstEgg) {
+            if (window.notify) notify(`✨ <b>СЕКРЕТ РАСКРЫТ:</b> Добавлена новая вкладка <b>🥚 Пасхалки</b> в верхнем меню! (+${rew} 🪙)`, 5000);
+        } else {
+            if (window.notify) notify(`🎉 <b>ПАСХАЛКА НАЙДЕНА:</b> ${egg ? egg.title : id}! (+${rew} 🪙)`, 4000);
+        }
+    }
+
+    window.checkEggsTabVisibility();
+    if (typeof window.playEggMusic === 'function') window.playEggMusic(id);
+    if (typeof window.renderEggs === 'function') window.renderEggs();
+};
+
+// 5. Запуск ядра при старте страницы
+document.addEventListener('DOMContentLoaded', () => {
+    window.initLiveStatusBar();
+    window.updateBalanceDisplay();
+    window.checkEggsTabVisibility();
+});
+
+
+// =========================================================
 // ВЯЧЕСЛАВ OS: МУЛЬТИ-ПРОФИЛИ & ДОСТУП К АДМИНКЕ
 // =========================================================
 
