@@ -1,3 +1,20 @@
+
+window.initPaintCanvas = function() {
+    const c = document.getElementById('paint-canvas');
+    const container = document.getElementById('paint-container') || (c ? c.parentElement : null);
+    if (c) {
+        if (!c.width || c.width === 0) {
+            c.width = container ? Math.min(container.clientWidth - 20, 360) : 340;
+            c.height = 340;
+        }
+        c.style.display = 'block';
+        c.style.background = '#ffffff';
+        c.style.borderRadius = '10px';
+        c.style.margin = '10px auto';
+        c.style.touchAction = 'none';
+    }
+};
+
 // Pixel Paint Studio - Обновленный модуль загрузки фото
 (function() {
   window.initPaintPhotoFix = function() {

@@ -37,6 +37,7 @@
                 if (b) b.classList.add('active');
             }
 
+            if (typeof window.onTabActivated === 'function') window.onTabActivated(tabId);
             if (tabId === 'eggs' && typeof window.renderEggs === 'function') {
                 window.renderEggs();
             } else if (tabId === 'admin') {

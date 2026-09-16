@@ -1,3 +1,24 @@
+
+// ГАРАНТИРОВАННАЯ ОТРИСОВКА ВСЕХ ВКЛАДОК ПРИ ПЕРЕКЛЮЧЕНИИ
+window.onTabActivated = function(tabId) {
+    if (tabId === 'shop') {
+        if (typeof window.renderShop === 'function') window.renderShop();
+        if (typeof window.renderMarket === 'function') window.renderMarket();
+    } else if (tabId === 'paint') {
+        if (typeof window.initPaintCanvas === 'function') window.initPaintCanvas();
+        if (typeof window.initPaint === 'function') window.initPaint();
+    } else if (tabId === 'quests') {
+        if (typeof window.renderQuests === 'function') window.renderQuests();
+        if (typeof window.updateQuestsUI === 'function') window.updateQuestsUI();
+    } else window.onTabActivated(tabId);
+    if (tabId === 'eggs') {
+        if (typeof window.renderEggs === 'function') window.renderEggs();
+    } else if (tabId === 'profile') {
+        if (typeof window.renderProfile === 'function') window.renderProfile();
+    }
+    if (typeof window.updateBalanceDisplay === 'function') window.updateBalanceDisplay();
+};
+
 // =========================================================
 // ОСНОВНОЕ ЯДРО СИСТЕМЫ И ПАСХАЛОК
 // =========================================================
